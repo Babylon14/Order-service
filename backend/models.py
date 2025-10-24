@@ -36,7 +36,8 @@ class Product(models.Model):
     """Модель Товара"""
 
     name = models.CharField(max_length=255, verbose_name="Название товара")
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products", verbose_name="Категория")
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="products", verbose_name="Категория")
 
     class Meta:
         verbose_name = "Товар"
@@ -47,3 +48,24 @@ class Product(models.Model):
         return self.name
 
 
+class ProductInfo(models.Model):
+    """Модель Информации о товаре"""
+
+    name = models.CharField(max_length=255, verbose_name="Информация о товаре")
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="product_infos", verbose_name="Товар")
+    shop = models.ForeignKey(
+        Shop, on_delete=models.CASCADE, related_name="product_infos", verbose_name="Магазин")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
+    price_rrc = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Рекомендуемая розничная цена")
+    quantity = models.PositiveIntegerField(verbose_name="Количество на складе")
+
+    class Meta:
+        verbose_name = "Информация о товаре"
+        verbose_name_plural = "Список информации о товарах"
+        ordering = ["product__name", "shop__name", "price", "quantity"]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.shop.name}"
+    
