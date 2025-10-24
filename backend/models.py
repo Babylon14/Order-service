@@ -84,5 +84,20 @@ class Parameter(models.Model):
         return self.name
     
 
+class ProductParameter(models.Model):
+    """Модель Значения параметра товара"""
 
-    
+    product_info = models.ForeignKey(
+        ProductInfo, on_delete=models.CASCADE, related_name="product_parameters", verbose_name="Информация о товаре")
+    parameter = models.ForeignKey(
+        Parameter, on_delete=models.CASCADE, related_name="product_parameters", verbose_name="Параметр")
+    value = models.CharField(max_length=255, verbose_name="Значение параметра")
+
+    class Meta:
+        verbose_name = "Значение параметра товара"
+        verbose_name_plural = "Список значений параметров товаров"
+        ordering = ["product_info", "parameter"]
+
+    def __str__(self):
+        return f"{self.product_info.product.name} - {self.parameter.name}: {self.value}"
+
