@@ -1,16 +1,16 @@
 from django.db import models
 
-class Shop(models.Model):
-    name = models.CharField(max_length=255)
-    address = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
+class Shop(models.Model):
+    """Модель Магазина"""
+
+    name = models.CharField(max_length=255, verbose_name="Название магазина")
+    website = models.URLField(max_length=255, blank=True, verbose_name="URL магазина")
+    
     def __str__(self):
         return self.name
-    
     class Meta:
-        verbose_name = "Shop"
-        verbose_name_plural = "Shops"
-        ordering = ['name']
+        verbose_name = "Магазин"
+        verbose_name_plural = "Список магазинов"
+        ordering = ['-name']
     
