@@ -32,5 +32,18 @@ class Category(models.Model):
         return self.name
 
 
+class Product(models.Model):
+    """Модель Товара"""
+
+    name = models.CharField(max_length=255, verbose_name="Название товара")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products", verbose_name="Категория")
+
+    class Meta:
+        verbose_name = "Товар"
+        verbose_name_plural = "Список товаров"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
