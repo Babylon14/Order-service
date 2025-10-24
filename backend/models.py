@@ -69,3 +69,20 @@ class ProductInfo(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.shop.name}"
     
+
+class Parameter(models.Model):
+    """Модель Параметра товара"""
+
+    name = models.CharField(max_length=255, verbose_name="Название параметра")
+
+    class Meta:
+        verbose_name = "Параметр"
+        verbose_name_plural = "Список параметров"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+    
+
+
+    
