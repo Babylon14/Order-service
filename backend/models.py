@@ -27,6 +27,15 @@ class Shop(models.Model):
 
     name = models.CharField(max_length=255, verbose_name="Название магазина")
     website = models.URLField(max_length=255, blank=True, verbose_name="URL магазина")
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="shop",
+        verbose_name="Пользователь магазина",
+        null=True,
+        blank=True,
+        help_text="Пользователь, связанный с этим магазином (только для поставщиков)",
+    )
 
     class Meta:
         verbose_name = "Магазин"
@@ -35,8 +44,11 @@ class Shop(models.Model):
 
     def __str__(self):
         return self.name
-    
-    
+
+    def is_supplier(self, user):
+        return self.user and user.user_type == "supplier" and self.user == user
+
+
 class Category(models.Model):
     """Модель Категории товаров"""
 
@@ -133,6 +145,8 @@ class Order(models.Model):
         ("delivered", "Доставлен"),
     ]
 
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="orders", verbose_name="Пользователь (Клиент)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания заказа")
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="new", verbose_name="Статус заказа")
@@ -146,7 +160,10 @@ class Order(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Заказ #{self.id} - {self.get_status_display()}"
+        return f"Заказ #{self.id} - {self.get_status_display()} - Клиент: {self.user.username}"
+
+    def is_client(self, user):
+        return user.user_type == "client" and self.user == user
 
 
 class OrderItem(models.Model):
@@ -166,3 +183,4 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.product_info.product.name} x {self.quantity} (Заказ #{self.order.id})"
 
+        
