@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
 class Shop(models.Model):
@@ -21,7 +22,7 @@ class Category(models.Model):
 
     name = models.CharField(max_length=255, verbose_name="Название категории")
     description = models.TextField(blank=True, verbose_name="Описание категории")
-    shops = models.ManyToManyField(Shop, related_name="categories", verbose_name="Магазины")
+    shops = models.ManyToManyField(Shop, related_name="categories", verbose_name="Магазин")
 
     class Meta:
         verbose_name = "Категория"
@@ -106,16 +107,19 @@ class Order(models.Model):
     """Модель Заказа"""
 
     STATUS_CHOICES = [
-        ('new', 'Новый'),
-        ('processing', 'В обработке'),
-        ('shipped', 'Отправлен'),
-        ('delivered', 'Доставлен'),
+        ("new", "Новый"),
+        ("processing", "В обработке"),
+        ("shipped", "Отправлен"),
+        ("delivered", "Доставлен"),
     ]
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания заказа")
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Статус заказа")
+        max_length=20, choices=STATUS_CHOICES, default="new", verbose_name="Статус заказа")
 
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.status, "Неизвестно")
+    
     class Meta:
         verbose_name = "Заказ"
         verbose_name_plural = "Список заказов"
