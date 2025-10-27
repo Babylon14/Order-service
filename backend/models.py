@@ -123,4 +123,22 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Заказ #{self.id} - {self.get_status_display()}"
-    
+
+
+class OrderItem(models.Model):
+    """Модель позиции в заказе"""
+
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="items", verbose_name="Заказ")
+    product_info = models.ForeignKey(
+        ProductInfo, on_delete=models.CASCADE, related_name="order_items", verbose_name="Информация о товаре")
+    quantity = models.PositiveIntegerField(verbose_name="Количество")
+
+    class Meta:
+        verbose_name = "Позиция заказа"
+        verbose_name_plural = "Список позиций заказов"
+        ordering = ["order", "product_info"]
+
+    def __str__(self):
+        return f"{self.product_info.product.name} x {self.quantity} (Заказ #{self.order.id})"
+
