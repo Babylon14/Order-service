@@ -2,6 +2,26 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+class User(AbstractUser):
+    """Модель Пользователя"""
+
+    USER_TYPE_CHOICES = [
+        ("client", "Клиент"),
+        ("supplier", "Поставщик"),
+    ]
+
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="client")
+    email = models.EmailField(unique=True, verbose_name="Электронная почта")
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Список пользователей"
+        ordering = ["username"]
+
+    def __str__(self):
+        return self.username
+
+
 class Shop(models.Model):
     """Модель Магазина"""
 
