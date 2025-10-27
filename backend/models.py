@@ -101,3 +101,26 @@ class ProductParameter(models.Model):
     def __str__(self):
         return f"{self.product_info.product.name} - {self.parameter.name}: {self.value}"
 
+
+class Order(models.Model):
+    """Модель Заказа"""
+
+    STATUS_CHOICES = [
+        ('new', 'Новый'),
+        ('processing', 'В обработке'),
+        ('shipped', 'Отправлен'),
+        ('delivered', 'Доставлен'),
+    ]
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Статус заказа")
+
+    class Meta:
+        verbose_name = "Заказ"
+        verbose_name_plural = "Список заказов"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Заказ #{self.id} - {self.get_status_display()}"
+    
