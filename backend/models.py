@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
+
 class User(AbstractUser):
     """Модель Пользователя"""
 
@@ -137,6 +138,7 @@ class ProductParameter(models.Model):
 
 class Order(models.Model):
     """Модель Заказа"""
+
     STATUS_CHOICES = [
         ("new", "Новый"),
         ("processing", "В обработке"),
@@ -146,6 +148,8 @@ class Order(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="orders",
         verbose_name="Пользователь (Клиент)"
     )
@@ -184,4 +188,27 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_info.product.name} x {self.quantity} (Заказ #{self.order.id})"
+
+
+class Contact(models.Model):
+    """Модель Контакта пользователя"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="contacts",
+        verbose_name="Пользователь"
+    )
+    phone = models.CharField(max_length=20, verbose_name="Телефон")
+    address = models.CharField(max_length=100, verbose_name="Адрес")
+
+    class Meta:
+        verbose_name = "Контакт пользователя"
+        verbose_name_plural = "Список контактов пользователя"
+        ordering = ["user"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.phone} - {self.address}"
 
