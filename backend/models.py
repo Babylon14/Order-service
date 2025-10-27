@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from django.conf import settings
 
 class User(AbstractUser):
     """Модель Пользователя"""
@@ -137,16 +137,18 @@ class ProductParameter(models.Model):
 
 class Order(models.Model):
     """Модель Заказа"""
-
     STATUS_CHOICES = [
         ("new", "Новый"),
         ("processing", "В обработке"),
         ("shipped", "Отправлен"),
         ("delivered", "Доставлен"),
     ]
-
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="orders", verbose_name="Пользователь (Клиент)")
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Пользователь (Клиент)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания заказа")
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="new", verbose_name="Статус заказа")
@@ -183,4 +185,3 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.product_info.product.name} x {self.quantity} (Заказ #{self.order.id})"
 
-        
