@@ -86,7 +86,33 @@ def _process_product_infos(product_infos_data: list, product: Product, shop: Sho
     Обрабатывает информацию о продукте (цена, количество и т.д.)
     из YAML-данных и связывает ее с продуктом и магазином.
     """
-    pass
+    for info_data in product_infos_data:
+        info_name = info_data.get("name")
+        price = info_data.get("price")
+        price_rcc = info_data.get("price_rcc")
+        quantity = info_data.get("quantity")
+
+        if not all([info_name, price, price_rcc, quantity]):
+            print(f"Пропущена информация о продукте '{info_name}' из-за отсутствующих данных.")
+            continue
+
+        # Получаем или создаем информацию о продукте
+        product_info, created = ProductInfo.objects.get_or_create(
+            product=product,
+            shop=shop,
+            name=product.name,
+            defaults={"price": price, "price_rcc": price_rcc, "quantity": quantity}
+        )
+
+        # Если объект уже существовал, обновляем поля
+        if not created:
+            product_info.price = price
+            product_info.price_rcc = price_rcc
+            product_info.quantity = quantity
+            product_info.save()
+
+        # Обрабатываем параметры продукта
+        _process_product_parameters(info_data.get("parameters", []), product_info)
 
 
 
