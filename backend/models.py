@@ -25,7 +25,7 @@ class User(AbstractUser):
 
 class Shop(models.Model):
     """Модель Магазина"""
-
+    
     name = models.CharField(max_length=255, verbose_name="Название магазина")
     source_file = models.CharField(max_length=500, blank=True, null=True,
                                    verbose_name="Путь к файлу источника",
