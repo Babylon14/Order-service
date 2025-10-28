@@ -1,0 +1,65 @@
+# shop1.yaml
+name: "Магазин Электроники"
+source_file: "data/shop1.yaml"
+state: true
+categories:
+  - name: "Смартфоны"
+    description: "Мобильные телефоны и аксессуары"
+    products:
+      - name: "iPhone 15"
+        product_infos:
+          - name: "iPhone 15 128GB Black"
+            price: 75000.00
+            price_rrc: 80000.00
+            quantity: 50
+            parameters:
+              - name: "Цвет"
+                value: "Черный"
+              - name: "Объем памяти"
+                value: "128 ГБ"
+          - name: "iPhone 15 256GB Blue"
+            price: 80000.00
+            price_rrc: 85000.00
+            quantity: 40
+            parameters:
+              - name: "Цвет"
+                value: "Синий"
+              - name: "Объем памяти"
+                value: "256 ГБ"
+      - name: "Samsung Galaxy S24"
+        product_infos:
+          - name: "Galaxy S24 256GB Gray"
+            price: 65000.00
+            price_rrc: 70000.00
+            quantity: 30
+            parameters:
+              - name: "Цвет"
+                value: "Серый"
+              - name: "Объем памяти"
+                value: "256 ГБ"
+  - name: "Ноутбуки"
+    description: "Портативные компьютеры"
+    products:
+      - name: "MacBook Air M2"
+        product_infos:
+          - name: "MacBook Air M2 256GB Silver"
+            price: 120000.00
+            price_rrc: 125000.00
+            quantity: 20
+            parameters:
+              - name: "Цвет"
+                value: "Серебристый"
+              - name: "Объем памяти"
+                value: "256 ГБ"
+
+
+
+
+
+
+
+
+
+
+
+

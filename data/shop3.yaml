@@ -1,0 +1,46 @@
+# shop3.yaml
+name: "Магазин Книг"
+source_file: "data/shop3.yaml"
+state: false
+categories:
+  - name: "Художественная литература"
+    description: "Романы, рассказы, поэзия"
+    products:
+      - name: "1984"
+        product_infos:
+          - name: "1984 - Издание 2023, мягкая обложка"
+            price: 800.00
+            price_rrc: 850.00
+            quantity: 100
+            parameters:
+              - name: "Обложка"
+                value: "Мягкая"
+              - name: "Год издания"
+                value: "2023"
+      - name: "Мастер и Маргарита"
+        product_infos:
+          - name: "Мастер и Маргарита - Издание 2022, твердая обложка"
+            price: 950.00
+            price_rrc: 1000.00
+            quantity: 80
+            parameters:
+              - name: "Обложка"
+                value: "Твердая"
+              - name: "Год издания"
+                value: "2022"
+  - name: "Научная литература"
+    description: "Учебники, монографии, научно-популярные книги"
+    products:
+      - name: "Краткая история времени"
+        product_infos:
+          - name: "Краткая история времени - Издание 2021"
+            price: 1200.00
+            price_rrc: 1250.00
+            quantity: 50
+            parameters:
+              - name: "Обложка"
+                value: "Твердая"
+              - name: "Год издания"
+                value: "2021"
+
+                
