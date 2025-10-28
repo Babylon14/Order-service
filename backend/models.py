@@ -27,7 +27,10 @@ class Shop(models.Model):
     """Модель Магазина"""
 
     name = models.CharField(max_length=255, verbose_name="Название магазина")
-    website = models.URLField(max_length=255, blank=True, verbose_name="URL магазина")
+    source_file = models.CharField(max_length=500, blank=True, null=True,
+                                   verbose_name="Путь к файлу источника",
+                                   help_text="Относительный путь к файлу (например, data/shop1.yaml)")
+    state = models.BooleanField(default=True, verbose_name="Статус получения заказов")
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
