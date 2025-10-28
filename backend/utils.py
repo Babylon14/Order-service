@@ -13,51 +13,61 @@ def load_shop_data_from_yaml(shop_id: int, yaml_file_path: str) -> dict:
     try:
         shop = Shop.objects.get(id=shop_id)
     except Shop.DoesNotExist:
-        print(f"Ошибка: магазин с {shop_id} не существует.")
-        return
+        print(f"Ошибка: магазин с ID {shop_id} не существует.")
+        return {"status": "error", "message": f"Магазин с ID {shop_id} не был найден."}
 
     try:
         with open(yaml_file_path, "r", encoding="utf-8") as file:
             yaml_data = yaml.safe_load(file)
     except FileNotFoundError:
         print(f"Ошибка: файл {yaml_file_path} не найден.")
-        return
+        return {"status": "error", "message": f"Файл {yaml_file_path} не найден."}
     except yaml.YAMLError as err:
         print(f"Ошибка при чтении YAML-файла: {err}")
-        return  
+        return {"status": "error", "message": f"Ошибка YAML: {err}"}
+
+    if not isinstance(yaml_data, dict):
+        print("Ошибка: YAML-файл должен содержать объект словарь.")
+        return {"status": "error", "message": "Неверный формат YAML-файла."}
 
     with transaction.atomic():
         """Транзакция для обеспечения целостности данных."""
         _process_categories(yaml_data.get("categories", []), shop)
 
-
-    def _process_categories(categories_data: list, shop: Shop) -> None:
-        """Обрабатывает категории из YAML-данных и связывает их с магазином."""
-        for category_data in categories_data:
-            cat_name = category_data.get("name")
-            cat_description = category_data.get("description", "")
-
-            if not cat_name:
-                print("Пропущена категория без имени.")
-                continue
-
-            # Получаем или создаем категорию
-            category, created = Category.objects.get_or_create(
-                name=cat_name,
-                defaults={"description": cat_description}
-            )
-            if not created:
-                category.description = cat_description
-                category.save()
-
-            # Добавляем магазин к категории, если его там еще нет
-            category.shops.add(shop)
-
-            # Обрабатываем товары в категории
-            _process_products(category_data.get("products", []), category, shop)
+     # Возвращаем успешный статус
+    return {
+        "status": "success",
+        "message": f"Данные из {yaml_file_path} успешно загружены для магазина {shop.name}."
+        }
 
 
-def _process_products(products_data: list, shop: Shop, category: Category) -> None:
+def _process_categories(categories_data: list, shop: Shop) -> None:
+    """Обрабатывает категории из YAML-данных и связывает их с магазином."""
+    for category_data in categories_data:
+        cat_name = category_data.get("name")
+        cat_description = category_data.get("description", "")
+
+        if not cat_name:
+            print("Пропущена категория без имени.")
+            continue
+
+        # Получаем или создаем категорию
+        category, created = Category.objects.get_or_create(
+            name=cat_name,
+            defaults={"description": cat_description}
+        )
+        if not created:
+            category.description = cat_description
+            category.save()
+
+        # Добавляем магазин к категории, если его там еще нет
+        category.shops.add(shop)
+
+        # Обрабатываем товары в категории
+        _process_products(category_data.get("products", []), category, shop)
+
+
+def _process_products(products_data: list, category: Category, shop: Shop) -> None:
     """Обрабатывает товары из YAML-данных и связывает их с категорией и магазином."""
     for product_data in products_data:
         prod_name = product_data.get("name")
@@ -78,7 +88,7 @@ def _process_products(products_data: list, shop: Shop, category: Category) -> No
             product.save()
 
         # Обрабатываем информацию о продукте
-        _process_product_infos(product_data.get("product_info", []), product, shop)
+        _process_product_infos(product_data.get("product_infos", []), product, shop)
 
 
 def _process_product_infos(product_infos_data: list, product: Product, shop: Shop) -> None:
@@ -89,10 +99,10 @@ def _process_product_infos(product_infos_data: list, product: Product, shop: Sho
     for info_data in product_infos_data:
         info_name = info_data.get("name")
         price = info_data.get("price")
-        price_rcc = info_data.get("price_rcc")
+        price_rrc = info_data.get("price_rrc")
         quantity = info_data.get("quantity")
 
-        if not all([info_name, price, price_rcc, quantity]):
+        if not all([info_name, price, price_rrc, quantity]):
             print(f"Пропущена информация о продукте '{info_name}' из-за отсутствующих данных.")
             continue
 
@@ -100,14 +110,14 @@ def _process_product_infos(product_infos_data: list, product: Product, shop: Sho
         product_info, created = ProductInfo.objects.get_or_create(
             product=product,
             shop=shop,
-            name=product.name,
-            defaults={"price": price, "price_rcc": price_rcc, "quantity": quantity}
+            name=info_name,
+            defaults={"price": price, "price_rrc": price_rrc, "quantity": quantity}
         )
 
         # Если объект уже существовал, обновляем поля
         if not created:
             product_info.price = price
-            product_info.price_rcc = price_rcc
+            product_info.price_rrc = price_rrc
             product_info.quantity = quantity
             product_info.save()
 
@@ -126,7 +136,7 @@ def _process_product_parameters(parameters_data: list, product_info: ProductInfo
             continue
 
         # Получаем или создаем параметр
-        parameter, created = Parameter.objects.get_or_create(name=param_name)
+        parameter, _ = Parameter.objects.get_or_create(name=param_name)
 
         # Создаем или обновляем связь между информацией о продукте и параметром
         ProductParameter.objects.update_or_create(
