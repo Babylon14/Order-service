@@ -50,7 +50,12 @@ class Shop(models.Model):
         return self.name
 
     def is_supplier(self, user):
+        """Проверяет, является ли пользователь поставщиком этого магазина."""
         return self.user and user.user_type == "supplier" and self.user == user
+
+    def get_source_file_path(self):
+        """Формирует путь к файлу источника данных магазина."""
+        return self.source_file if self.source_file else f"data/{self.name}.yaml"
 
 
 class Category(models.Model):
