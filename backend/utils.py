@@ -115,6 +115,23 @@ def _process_product_infos(product_infos_data: list, product: Product, shop: Sho
         _process_product_parameters(info_data.get("parameters", []), product_info)
 
 
+def _process_product_parameters(parameters_data: list, product_info: ProductInfo) -> None:
+    """Обрабатывает параметры продукта из YAML-данных и связывает их с информацией о продукте."""
+    for param_data in parameters_data:
+        param_name = param_data.get("name")
+        param_value = param_data.get("value")
 
+        if not all([param_name, param_value]):
+            print(f"Пропущен параметр {product_info.product.name} из-за отсутствующих данных.")
+            continue
 
+        # Получаем или создаем параметр
+        parameter, created = Parameter.objects.get_or_create(name=param_name)
+
+        # Создаем или обновляем связь между информацией о продукте и параметром
+        ProductParameter.objects.update_or_create(
+            product_info=product_info,
+            parameter=parameter,
+            defaults={"value": param_value}
+        )
 
