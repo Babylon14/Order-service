@@ -6,8 +6,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Shop
-from .utils import load_shop_data_from_yaml
+from backend.models import Shop
+from backend.utils import load_shop_data_from_yaml
 
 
 def index(request):

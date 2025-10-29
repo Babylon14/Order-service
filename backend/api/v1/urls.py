@@ -1,0 +1,10 @@
+from django.urls import path
+from . import views
+
+
+urlpatterns = [
+    path("import_shop/<int:shop_id>/", views.import_shop_data_api, name="import_shop_data_api_v1"),
+    path("import_all_shops/", views.import_all_shops_data_api, name="import_all_shops_data_api_v1"),
+]
+
+
