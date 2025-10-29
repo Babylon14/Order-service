@@ -1,5 +1,13 @@
-from django.shortcuts import render, HttpResponse
+from urllib.request import Request
+from django.shortcuts import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseNotFound, HttpResponseServerError
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Shop
+from .utils import load_shop_data_from_yaml
 
 
 def index(request):
@@ -30,3 +38,39 @@ def server_error(request):
     )
 
 
+@api_view(["POST"])
+def import_shop_data_api(request: Request, shop_id=None) -> Response:
+    """
+    API View для запуска импорта данных магазина из YAML-файла.
+    Может принимать shop_id в URL или в теле запроса.
+    """
+    request_shop_id = shop_id
+    if request_shop_id is None:
+        request_shop_id = request.data.get("shop_id")
+
+    if request_shop_id is None:
+        return Response(
+            {"status": "error", "message": "shop_id не предоставлен."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    try:
+        shop = Shop.objects.get(id=request_shop_id)
+    except ObjectDoesNotExist:
+        return Response(
+            {"status": "error", "message": f"Магазин с ID {request_shop_id} не найден."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    yaml_file_path = shop.get_source_file_path()
+    result = load_shop_data_from_yaml(shop_id=shop.id, yaml_file_path=yaml_file_path)
+    if result and result.get("status") == "success":
+        return Response(result, status=status.HTTP_200_OK)
+    else:
+        error_message = result.get(
+            "message", "Неизвестная ошибка при импорте данных.") if result else "Неизвестная ошибка при импорте данных."
+        return Response(
+            {"error": error_message},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+
+    
