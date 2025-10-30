@@ -1,6 +1,7 @@
 import yaml
 from django.db import transaction
 from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
+import logging
 
 
 def load_shop_data_from_yaml(shop_id: int, yaml_file_path: str) -> dict:
@@ -30,15 +31,20 @@ def load_shop_data_from_yaml(shop_id: int, yaml_file_path: str) -> dict:
         print("Ошибка: YAML-файл должен содержать объект словарь.")
         return {"status": "error", "message": "Неверный формат YAML-файла."}
 
-    with transaction.atomic():
-        """Транзакция для обеспечения целостности данных."""
-        _process_categories(yaml_data.get("categories", []), shop)
+    try:
+        with transaction.atomic():
+            """Транзакция для обеспечения целостности данных."""
+            _process_categories(yaml_data.get("categories", []), shop)
+    except Exception as err:
+        logging.exception(f"Ошибка при загрузке данных из {yaml_file_path} для магазина {shop.name}: {err}")
+        print(f"Ошибка при загрузке данных из {yaml_file_path} для магазина {shop.name}: {err}")
+        return {"status": "error", "message": f"Ошибка при загрузке данных: {err}"}
 
      # Возвращаем успешный статус
     return {
         "status": "success",
         "message": f"Данные из {yaml_file_path} успешно загружены для магазина {shop.name}."
-        }
+    }
 
 
 def _process_categories(categories_data: list, shop: Shop) -> None:
