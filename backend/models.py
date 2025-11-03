@@ -210,13 +210,19 @@ class Contact(models.Model):
         verbose_name="Пользователь"
     )
     phone = models.CharField(max_length=20, verbose_name="Телефон")
-    address = models.CharField(max_length=100, verbose_name="Адрес")
+    city = models.CharField(max_length=50, verbose_name="Город", default="Город не указан")
+    street = models.CharField(max_length=100, verbose_name="Улица", default="Улица не указана")
+    house = models.CharField(max_length=15, verbose_name="Дом", blank=True)
+    structure = models.CharField(max_length=15, verbose_name="Корпус", blank=True)
+    building = models.CharField(max_length=15, verbose_name="Строение", blank=True)
+    apartment = models.CharField(max_length=15, verbose_name="Квартира", blank=True)
 
     class Meta:
-        verbose_name = "Контакт пользователя"
+        verbose_name = "Контакты пользователя"
         verbose_name_plural = "Список контактов пользователя"
-        ordering = ["user"]
+        ordering = ["user", "city", "street", "house"]
 
     def __str__(self):
-        return f"{self.user.username} - {self.phone} - {self.address}"
+        return f'{self.city} {self.street} {self.house}'
+
 
