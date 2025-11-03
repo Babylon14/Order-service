@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from backend.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
+
+from backend.models import User
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователя с валидацией пароля."""
@@ -29,4 +32,30 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"]) # Хешируем пароль
         user.save()
         return user
+
+
+class UserLoginSerializer(serializers.Serializer):
+    """Сериализатор для аутентификации(входа) пользователя."""
+
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        # Проверяем, существует ли пользователь с таким email
+        try:
+            user = User.objects.get(email__iexact=email) # iexact - нечувствительно к регистру
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Неверный email или пароль.")
+        
+        # Используем authenticate, чтобы проверить пароль
+        user_auth = authenticate(username=email, password=password)
+        if not user_auth:
+            raise serializers.ValidationError("Неверный email или пароль.")
+
+        # Сохраняем аутентифицированного пользователя для дальнейшего использования
+        attrs["user"] = user_auth
+        return attrs
 
