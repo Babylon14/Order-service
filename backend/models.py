@@ -14,6 +14,9 @@ class User(AbstractUser):
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="client")
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
 
+    USERNAME_FIELD = "email"  # Используем email для аутентификации
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]  # Поля, обязательные при создании суперпользователя
+
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Список пользователей"

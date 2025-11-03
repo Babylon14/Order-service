@@ -41,15 +41,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         email_provided = attrs.get("email")
         logger.info(f"Попытка входа с email: {email_provided}")
         
-        attrs["username"] = email_provided  # Устанавливаем username как email для аутентификации
+        # ВНИМАНИЕ!!! TokenObtainPairSerializer САМ ОБРАБОТАЕТ username_field = 'email'
+        # и вызовет authenticate с правильными аргументами.
 
         try:
-            # Вызываем родительский метод для стандартной валидации и получения токенов
+            # Вызов родительской валидации (аутентификации)
             data = super().validate(attrs)
+            logger.info(f"Аутентификация успешна для пользователя ID: {self.user.id}")
         except Exception as e:
-            logger.error(f"Ошибка валидации/аутентификации в CustomTokenObtainPairSerializer: {e}")
-            raise  # Пробрасываем исключение дальше
-        logger.info(f"Аутентификация прошла успешно для пользователя ID: {self.user.id}")
+            logger.error(f"Ошибка валидации/аутентификации в super().validate: {e}")
+            raise # Переподнимаем исключение
 
         # Добавляем дополнительную информацию в ответ
         user = self.user
