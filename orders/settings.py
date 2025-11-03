@@ -150,3 +150,24 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",  # или INFO
+    },
+    "loggers": {
+        "backend": {  # Имя вашего приложения
+            "handlers": ["console"],
+            "level": "DEBUG",  # или INFO
+            "propagate": False,
+        },
+    },
+}

@@ -25,9 +25,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         user = User(
             username=validated_data["email"], # Используем email в качестве username
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
-            email=validated_data['email'],
+            first_name=validated_data.get("first_name"),
+            last_name=validated_data.get("last_name"),
+            email=validated_data["email"],
         )
         user.set_password(validated_data["password"]) # Хешируем пароль
         user.save()

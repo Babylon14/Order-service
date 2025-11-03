@@ -4,10 +4,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+import logging
 
 from backend.api.auth_serializers import UserRegistrationSerializer
 from backend.models import User
 
+
+# Настройка логгера
+logger = logging.getLogger(__name__)
 
 class UserRegistrationAPIView(CreateAPIView):
     """
@@ -18,7 +22,7 @@ class UserRegistrationAPIView(CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]  # Разрешаем всем (включая неавторизованных) пользователям регистрироваться
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -34,10 +38,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         """Переопределяем метод validate, чтобы использовать email и пароль для аутентификации"""
-        attrs["username"] = attrs.get("email")
+        email_provided = attrs.get("email")
+        logger.info(f"Попытка входа с email: {email_provided}")
         
-        # Вызываем родительский метод для стандартной валидации и получения токенов
-        data = super().validate(attrs)
+        attrs["username"] = email_provided  # Устанавливаем username как email для аутентификации
+
+        try:
+            # Вызываем родительский метод для стандартной валидации и получения токенов
+            data = super().validate(attrs)
+        except Exception as e:
+            logger.error(f"Ошибка валидации/аутентификации в CustomTokenObtainPairSerializer: {e}")
+            raise  # Пробрасываем исключение дальше
+        logger.info(f"Аутентификация прошла успешно для пользователя ID: {self.user.id}")
 
         # Добавляем дополнительную информацию в ответ
         user = self.user
