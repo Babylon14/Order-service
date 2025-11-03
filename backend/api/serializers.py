@@ -2,7 +2,6 @@ from rest_framework import serializers
 from backend.models import User
 from django.contrib.auth.password_validation import validate_password
 
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователя с валидацией пароля."""
 

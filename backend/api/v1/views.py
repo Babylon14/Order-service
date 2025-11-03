@@ -86,10 +86,3 @@ def import_all_shops_data_api(request: Request) -> Response:
     }, status=status.HTTP_200_OK if success_count > 0 else status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-
-
-
-
-
