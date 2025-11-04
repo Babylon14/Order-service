@@ -1,5 +1,5 @@
 import django_filters
-from backend.models import Shop, Product, ProductInfo
+from backend.models import Product
 
 
 class ProductFilter(django_filters.FilterSet):
@@ -30,3 +30,5 @@ class ProductFilter(django_filters.FilterSet):
             "name", "category", "shop_id", "shop_name",
             "price_min", "price_max", "quantity_min", "quantity_max"
         ]
+
+        
