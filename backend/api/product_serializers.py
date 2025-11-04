@@ -16,12 +16,13 @@ class ProductInfoSerializer(serializers.ModelSerializer):
     shop_name = serializers.CharField(source="shop.name", read_only=True)
     product_parameters = ProductParameterSerializer(
         source="product_parameters.all", many=True, read_only=True)
+    description = serializers.CharField(source="name", read_only=True)
 
     class Meta:
         model = ProductInfo
         fields = [
             "id", "shop_name", "price",
-            "quantity", "product_parameters"
+            "quantity", "product_parameters", "description"
         ]  # Включаем магазин, цену, кол-во, параметры
 
 
@@ -34,17 +35,6 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = ["id", "name", "category_name", "product_infos"]  
 
-
-class ProductInfoSerializer(serializers.ModelSerializer):
-    """Сериализатор для информации о товаре (цена, количество, магазин)."""
-    shop_name = serializers.CharField(source="shop.name", read_only=True)
-    product_parameters = ProductParameterSerializer(
-        source="product_parameters.all", many=True, read_only=True)
-    description = serializers.CharField(source="name", read_only=True)
-
-    class Meta:
-        model = ProductInfo
-        fields = ["id", "shop_name", "price", "quantity", "product_parameters", "description"]
 
 
   
