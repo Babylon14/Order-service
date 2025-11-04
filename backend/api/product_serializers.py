@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from backend.models import ProductParameter, ProductInfo
+from backend.models import ProductParameter, ProductInfo, Product
 
 
 class ProductParameterSerializer(serializers.ModelSerializer):
@@ -23,3 +23,16 @@ class ProductInfoSerializer(serializers.ModelSerializer):
             "id", "shop_name", "price",
             "quantity", "product_parameters"
         ]  # Включаем магазин, цену, кол-во, параметры
+
+
+class ProductListSerializer(serializers.ModelSerializer):
+    """Сериализатор для списка товаров."""
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    product_infos = ProductInfoSerializer(many=True, read_only=True)  # Информация о товаре
+
+    class Meta:
+        model = Product
+        fields = ["id", "name", "category_name", "product_infos"]  
+
+
+  
