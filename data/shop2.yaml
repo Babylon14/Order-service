@@ -1,0 +1,52 @@
+# shop2.yaml
+name: "Магазин Бытовой Техники"
+source_file: "data/shop2.yaml"
+state: true
+categories:
+  - name: "Холодильники"
+    description: "Бытовая техника для кухни"
+    products:
+      - name: "Bosch KGN39VW2AR"
+        product_infos:
+          - name: "Bosch KGN39VW2AR White"
+            price: 45000.00
+            price_rrc: 47000.00
+            quantity: 15
+            parameters:
+              - name: "Цвет"
+                value: "Белый"
+              - name: "Высота"
+                value: "178 см"
+      - name: "Samsung RB33T7763SA"
+        product_infos:
+          - name: "Samsung RB33T7763SA Stainless Steel"
+            price: 55000.00
+            price_rrc: 58000.00
+            quantity: 10
+            parameters:
+              - name: "Цвет"
+                value: "Нержавеющая сталь"
+              - name: "Высота"
+                value: "178 см"
+  - name: "Стиральные машины"
+    description: "Автоматические стиральные машины"
+    products:
+      - name: "LG F4WV900SL"
+        product_infos:
+          - name: "LG F4WV900SL Silver"
+            price: 40000.00
+            price_rrc: 42000.00
+            quantity: 25
+            parameters:
+              - name: "Цвет"
+                value: "Серебристый"
+              - name: "Загрузка"
+                value: "9 кг"
+
+
+
+
+
+
+
+

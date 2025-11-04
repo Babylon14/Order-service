@@ -16,14 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from backend.views import page_not_found, server_error
+
+from backend.api import views
+
 
 urlpatterns = [
+    path("", views.index, name="index"),
+    path("categories/", views.categories, name="categories"),
     path("admin/", admin.site.urls),
-    path("", include("backend.urls")),
+    path("api/", include("backend.api.urls")),
 ]
 
-handler404 = "backend.views.page_not_found"
-handler500 = "backend.views.server_error"
+handler404 = "backend.api.views.page_not_found"
+handler500 = "backend.api.views.server_error"
 
 

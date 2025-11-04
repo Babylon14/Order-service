@@ -1,5 +1,4 @@
-from django.shortcuts import render, HttpResponse
-from django.http import HttpResponseNotFound, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 
 
 def index(request):
@@ -28,5 +27,6 @@ def server_error(request):
     return HttpResponseServerError(
         "<h1>500 - Внутренняя ошибка сервера</h1><p>Извините, произошла ошибка на сервере.</p>"
     )
+
 
 
