@@ -12,6 +12,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh_api_v1"),
 
     path("product-infos/", product_views.ProductInfoListView.as_view(), name="product_info_list_api_v1"),
+    path("products/<int:id>/", product_views.ProductDetailView.as_view(), name="product_detail_api_v1")
 ]
 
 
