@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 
 from backend.models import Product, ProductInfo
-from backend.api.product_serializers import ProductInfoListSerializer
+from backend.api.product_serializers import ProductInfoListSerializer, ProductListSerializer
 from backend.api.filters import ProductInfoFilter
 
 
@@ -49,4 +49,17 @@ class ProductInfoListView(generics.ListAPIView):
         ).prefetch_related(
             "product_parameters__parameter" # Подгружаем параметры и их имена
         )
+
+class ProductDetailView(generics.RetrieveAPIView):
+    """
+    API View для получения информации о конкретном товаре по его ID.
+    GET /api/v1/products/<int:pk>/
+    """
+    queryset = Product.objects.all().prefetch_related(
+        "product_infos__shop",  # Подгружаем магазин для каждого ProductInfo
+        "product_infos__product_parameters__parameter"  # Подгружаем параметры и их имена
+    )
+    serializer_class = ProductListSerializer
+    permission_classes = [AllowAny]  # Доступно всем пользователям
+    lookup_field = "id"  # Поле, по которому ищем (обычно id)
 
