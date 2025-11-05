@@ -32,9 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1"]
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,6 +44,7 @@ INSTALLED_APPS = [
     "backend.apps.BackendConfig",
     "rest_framework_simplejwt",
     "rest_framework",
+    "django_filters",
 ]
 
 MIDDLEWARE = [
@@ -142,6 +141,11 @@ REST_FRAMEWORK = {
         # Добавляем JWT аутентификацию
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend", # Используем фильтры django-filter
+        "rest_framework.filters.SearchFilter",               # Добавляем возможность поиска
+        "rest_framework.filters.OrderingFilter",             # Добавляем возможность сортировки
+    ],
 }
 
 SIMPLE_JWT = {
