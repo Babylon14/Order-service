@@ -1,27 +1,52 @@
-from rest_framework import generics, filters
+from rest_framework import generics
+from rest_framework import filters
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 
-from backend.models import Product
-from backend.api.product_serializers import ProductListSerializer
-from backend.api.filters import ProductFilter
+from backend.models import Product, ProductInfo
+from backend.api.product_serializers import ProductInfoListSerializer
+from backend.api.filters import ProductInfoFilter
 
 
-class ProductListView(generics.ListAPIView):
+class ProductInfoListView(generics.ListAPIView):
     """
-    API View для получения списка товаров с возможностью фильтрации и поиска.
-    GET /api/v1/products/
+    API View для получения списка информации о товарах (ProductInfo)
+    с возможностью фильтрации и поиска.
+    GET /api/v1/product-infos/
     """
-    queryset = Product.objects.all().prefetch_related(
-        "category",  # Предзагрузка категорий
-        "product_infos__shop",  # Предзагрузка магазинов
-        "product_infos__product_parameters__parameter"  # Предзагрузка параметров товаров
-    )
-    serializer_class = ProductListSerializer
+    serializer_class = ProductInfoListSerializer
     permission_classes = [AllowAny]  # Доступно всем пользователям
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class = ProductFilter  # Используем наш класс фильтров
-    search_fields = ["name", "product_infos__shop__name"]  # Поля для поиска
-    ordering_fields = ["name", "product_infos__price", "product_infos__quantity"]  # Поля для сортировки
-    ordering = ["name"]  # Сортировка по умолчанию
+
+    # Поля для поиска: можно искать по полям ProductInfo и связанным полям Product
+    search_fields = [
+        "product__name", # Поиск по названию товара
+        "description",   # Поиск по описанию из ProductInfo.name
+        "shop__name",    # Поиск по названию магазина(поставщика)
+        "product_parameters__value", # Поиск по значению параметра
+        "product_parameters__parameter__name", # Поиск по названию параметра
+    ]
+
+    filterset_class = ProductInfoFilter  # Используем класс фильтров
+
+    # Поля для сортировки
+    ordering_fields = [
+        "id",           # Сортировка по ID
+        "price",         # Сортировка по цене
+        "quantity",      # Сортировка по количеству
+    ]
+    ordering = ["id"]  # Сортировка по умолчанию
+
+    def get_queryset(self):
+        """
+        Переопределяем метод для получения queryset с предзагрузкой связанных данных
+        для оптимизации количества запросов к базе данных.
+        """
+        return ProductInfo.objects.select_related(
+            "product",
+            "product__category", # Подгружаем категорию
+            "shop",              # Подгружаем магазин
+        ).prefetch_related(
+            "product_parameters__parameter" # Подгружаем параметры и их имена
+        )
 
