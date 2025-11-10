@@ -15,7 +15,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ["id", "product_name", "product_shop", "price", "quantity", "total_price"]
+        fields = ["id", "product_name", "shop_name", "price", "quantity", "total_price"]
 
     def get_total_price(self, obj):
         """Вычисляет и возвращает общую сумму для этой позиции."""

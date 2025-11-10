@@ -20,8 +20,7 @@ urlpatterns = [
     # URL для корзины
     path("cart/", cart_views.CartView.as_view(), name="cart_detail_api_v1"), # Получить/очистить корзину
     path("cart/add/", cart_views.CartItemAddView.as_view(), name="cart_item_add_api_v1"), # Добавить товар
-    path("cart/item/update/<int:id>/", cart_views.CartItemUpdateView.as_view(), name="cart_item_update_api_v1"), # Обновить количество
-    path("cart/item/delete/<int:id>/", cart_views.CartItemDeleteView.as_view(), name="cart_item_delete_api_v1"), # Удалить товар
+    path("cart/item/<int:id>/", cart_views.CartItemView.as_view(), name="cart_item_api_v1"), # Обновить количество, удалить товар
     
 ]
 

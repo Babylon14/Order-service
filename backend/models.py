@@ -280,7 +280,7 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.product_info.product.name} X {self.quantity} - (в корзине {self.cart.user.username})" 
     
-    def total_price(self):
+    def get_total_price(self):
         """Вычисляет сумму для этой позиции (цена * количество)."""
         return self.product_info.price * self.quantity
 

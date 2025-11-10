@@ -1,4 +1,4 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, mixins
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -74,37 +74,48 @@ class CartItemAddView(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CartItemUpdateView(generics.UpdateAPIView):
+class CartItemView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
     """
-    API View для обновления количества товара в корзине.
-    PUT /api/v1/cart/item/<int:pk>/ (где pk - id CartItem)
-    Ожидает: {"quantity": <int>}
+    API View для обновления количества или удаления товара из корзины.
+    PUT /api/v1/cart/item/<int:id>/ - обновить количество
+    DELETE /api/v1/cart/item/<int:id>/ - удалить товар
     """
-    queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = "id"
+    lookup_field = "id" # Ищем CartItem(Позицию в корзине) по id
 
+    def get_queryset(self):
+        """Возвращает queryset только для текущего пользователя."""
+        user = self.request.user
+        # Получаем корзину пользователя (или None, если её нет)
+        # и возвращаем QuerySet позиций из этой корзины
+        user_cart = Cart.objects.filter(user=user).first()
+        if user_cart:
+            return CartItem.objects.filter(cart=user_cart)
+        else:
+            # Если корзины нет, возвращаем пустой QuerySet
+            return CartItem.objects.none()
+    
+    def put(self, request, *args, **kwargs):
+        """Обновление количества."""
+        # Вызовем update, который использует get_queryset
+        return self.update(request, *args, **kwargs)
+    
+    def delete(self, request, *args, **kwargs):
+        """Удаление товара."""
+        # Вызовем destroy, который использует get_queryset
+        return self.destroy(request, *args, **kwargs)
+    
     def perform_update(self, serializer):
-        """Переопределяем для проверки доступного кол-ва в корзине."""
+        """Переопределение perform_update, чтобы проверить доступное количество."""
         instance = serializer.save()
         product_info = instance.product_info
         if instance.quantity > product_info.quantity:
-            instance.quantity = product_info.quantity  # Ограничиваем доступным количеством
+            instance.quantity = product_info.quantity
+            instance.save()
             # Возвращаем предупреждение
             return Response({
-                "message": f"Количество не может превышать доступный запас: {product_info.quantity}.",
+                "message": f"Количество ограничено доступным запасом: {product_info.quantity}.",
                     "cart_item": CartItemSerializer(instance).data}, status=status.HTTP_200_OK
             )
-        
-
-class CartItemDeleteView(generics.DestroyAPIView):
-    """
-    API View для удаления товара из корзины.
-    DELETE /api/v1/cart/item/delete/<int:id>/ (где id - id CartItem)
-    """
-    queryset = CartItem.objects.all()
-    permission_classes = [IsAuthenticated]
-    lookup_field = "id"     
-
         
