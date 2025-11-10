@@ -3,7 +3,6 @@ from backend.models import Cart, CartItem
 
 
 # --- СЕРИАЛИЗАТОРЫ ДЛЯ КОРЗИНЫ ---
-
 class CartItemSerializer(serializers.ModelSerializer):
     """Сериализатор для позиции в корзине."""
 

@@ -1,4 +1,4 @@
-from rest_framework import generics, status, mixins
+from rest_framework import generics, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -98,13 +98,13 @@ class CartItemUpdateView(generics.UpdateAPIView):
             )
         
 
-        
+class CartItemDeleteView(generics.DestroyAPIView):
+    """
+    API View для удаления товара из корзины.
+    DELETE /api/v1/cart/item/delete/<int:id>/ (где id - id CartItem)
+    """
+    queryset = CartItem.objects.all()
+    permission_classes = [IsAuthenticated]
+    lookup_field = "id"     
 
         
-
-
-
-
-
-
-
