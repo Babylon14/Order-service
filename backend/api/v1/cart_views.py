@@ -72,9 +72,30 @@ class CartItemAddView(generics.CreateAPIView):
         # Возвращаем обновленную позицию
         serializer = CartItemSerializer(cart_item)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-     
-        
+
+
+class CartItemUpdateView(generics.UpdateAPIView):
+    """
+    API View для обновления количества товара в корзине.
+    PUT /api/v1/cart/item/<int:pk>/ (где pk - id CartItem)
+    Ожидает: {"quantity": <int>}
+    """
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = "id"
+
+    def perform_update(self, serializer):
+        """Переопределяем для проверки доступного кол-ва в корзине."""
+        instance = serializer.save()
+        product_info = instance.product_info
+        if instance.quantity > product_info.quantity:
+            instance.quantity = product_info.quantity  # Ограничиваем доступным количеством
+            # Возвращаем предупреждение
+            return Response({
+                "message": f"Количество не может превышать доступный запас: {product_info.quantity}.",
+                    "cart_item": CartItemSerializer(instance).data}, status=status.HTTP_200_OK
+            )
         
 
         
