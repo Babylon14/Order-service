@@ -24,7 +24,7 @@ urlpatterns = [
     
     # URL для контактов
     path("contacts/", contact_views.ContactListView.as_view(), name="contact_list_api_v1"), # Список и создание
-    path("contscts/<int:id>/", contact_views.ContactDetailView.as_view(), name="contact_detail_api_v1"), # Получить, обновить, удалить
+    path("contacts/<int:id>/", contact_views.ContactDetailView.as_view(), name="contact_detail_api_v1"), # Получить, обновить, удалить
 ]
 
 
