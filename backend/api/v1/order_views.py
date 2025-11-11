@@ -2,9 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
 
-from backend.models import Cart, Contact, Order, OrderItem, ProductInfo
+from backend.models import Cart, Contact, Order, OrderItem
 from backend.api.order_serializers import OrderSerializer
 
 
@@ -41,7 +40,7 @@ class ConfirmOrderView(APIView):
             )
         # Проверяем, существует ли контакт и принадлежит ли он пользователю
         try:
-            contact = get_object_or_404(Contact, id=contact_id, user=user)
+            contact = Contact.objects.get(id=contact_id, user=user)
         except Contact.DoesNotExist:
             return Response({
                 "status": "error",

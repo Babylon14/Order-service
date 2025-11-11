@@ -1,5 +1,5 @@
 from django.urls import path
-from . import auth_views, views, product_views, cart_views, contact_views
+from . import auth_views, views, product_views, cart_views, contact_views, order_views
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
@@ -25,6 +25,10 @@ urlpatterns = [
     # URL для контактов
     path("contacts/", contact_views.ContactListView.as_view(), name="contact_list_api_v1"), # Список и создание
     path("contacts/<int:id>/", contact_views.ContactDetailView.as_view(), name="contact_detail_api_v1"), # Получить, обновить, удалить
+    
+    # URL для подтверждения заказа
+    path("confirm-order/", order_views.ConfirmOrderView.as_view(), name="order_confirm_api_v1"),
+
 ]
 
 
