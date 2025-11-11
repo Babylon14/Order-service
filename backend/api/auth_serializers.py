@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate
 from backend.models import User
 
 
+# --- СЕРИАЛИЗАТОРЫ ДЛЯ РЕГИСТРАЦИИ ---
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователя с валидацией пароля."""
 
