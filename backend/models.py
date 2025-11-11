@@ -229,3 +229,58 @@ class Contact(models.Model):
         return f'{self.city} {self.street} {self.house}'
 
 
+class Cart(models.Model):
+    """Модель Корзины пользователя"""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="cart",
+        verbose_name="Пользователь"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата добавления")
+
+    class Meta:
+        verbose_name = "Корзина"
+        verbose_name_plural = "Корзины"
+
+    def __str__(self):
+        return f"Корзина {self.user.username}"
+    
+    def get_total_price(self):
+        """Вычисляет общую сумму товаров в корзине"""
+        total = 0
+        for item in self.items.all():  # related_name='items' для CartItem
+            total += item.get_total_price()
+        return total
+
+ 
+class CartItem(models.Model):
+    """Модель позиции в корзине"""
+
+    cart = models.ForeignKey(
+        Cart,
+        on_delete=models.CASCADE,
+        related_name="items", # related_name для доступа из Cart
+        verbose_name = "Корзина"
+    )
+    product_info = models.ForeignKey(
+        ProductInfo,
+        on_delete=models.CASCADE,
+        verbose_name="Информация о товаре (Цена, Магазин)"
+    )
+    quantity = models.PositiveIntegerField(default=1, verbose_name="Количество")
+
+    class Meta:
+        verbose_name = "Позиция в корзине"
+        verbose_name_plural = "Позиции в корзине"
+        unique_together = ("cart", "product_info")  # Один товар не может быть дважды в корзине
+
+    def __str__(self):
+        return f"{self.product_info.product.name} X {self.quantity} - (в корзине {self.cart.user.username})" 
+    
+    def get_total_price(self):
+        """Вычисляет сумму для этой позиции (цена * количество)."""
+        return self.product_info.price * self.quantity
+

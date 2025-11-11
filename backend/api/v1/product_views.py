@@ -63,3 +63,4 @@ class ProductDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]  # Доступно всем пользователям
     lookup_field = "id"  # Поле, по которому ищем (обычно id)
 
+
