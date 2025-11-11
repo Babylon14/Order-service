@@ -2,6 +2,7 @@ from rest_framework import serializers
 from backend.models import Order, OrderItem
 
 
+# --- СЕРИАЛИЗАТОРЫ ДЛЯ ЗАКАЗА ---
 class OrderItemSerializer(serializers.ModelSerializer):
     """Сериализатор для позиции в заказе."""
     product_name = serializers.CharField(source="product_info.product.name", read_only=True)
@@ -23,4 +24,3 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ["id", "created_at", "status", "items"]
 
-        
