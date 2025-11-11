@@ -14,3 +14,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ["id", "product_name", "shop_name", "price", "quantity"]
 
+
+class OrderSerializer(serializers.ModelSerializer):
+    """Сериализатор для заказа."""
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ["id", "created_at", "status", "items"]
+
+        
