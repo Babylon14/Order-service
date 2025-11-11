@@ -22,6 +22,9 @@ urlpatterns = [
     path("cart/add/", cart_views.CartItemAddView.as_view(), name="cart_item_add_api_v1"), # Добавить товар
     path("cart/item/<int:id>/", cart_views.CartItemView.as_view(), name="cart_item_api_v1"), # Обновить количество, удалить товар
     
+    # URL для контактов
+    path("contacts/", views.ContactListView.as_view(), name="contact_list_api_v1"), # Список и создание
+    path("contscts/<int:id>/", views.ContactDetailView.as_view(), name="contact_detail_api_v1"), # Получить, обновить, удалить
 ]
 
 
