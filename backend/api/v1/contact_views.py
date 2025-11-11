@@ -18,8 +18,9 @@ class ContactListView(generics.ListCreateAPIView):
         """Возвращает список контактов, принадлежащих текущему пользователю."""
         return Contact.objects.filter(user=self.request.user)
     
+    def perform_create(self, serializer):
+        """Сохраняет контакт, принадлежащий текущему пользователю."""
+        serializer.save(user=self.request.user)
 
 
 
-
-    
