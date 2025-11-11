@@ -209,7 +209,7 @@ class Contact(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="contacts",
+        related_name="contacts", # Связь с моделью пользователя
         verbose_name="Пользователь"
     )
     phone = models.CharField(max_length=20, verbose_name="Телефон")
@@ -221,12 +221,24 @@ class Contact(models.Model):
     apartment = models.CharField(max_length=15, verbose_name="Квартира", blank=True)
 
     class Meta:
-        verbose_name = "Контакты пользователя"
+        verbose_name = "Контакт пользователя"
         verbose_name_plural = "Список контактов пользователя"
-        ordering = ["user", "city", "street", "house"]
+        ordering = ["user", "user__last_name", "user__first_name"]
 
     def __str__(self):
-        return f'{self.city} {self.street} {self.house}'
+        return f"{self.user.username} - {self.user.last_name} {self.user.first_name} - {self.city}, {self.street}"
+
+    @property
+    def first_name(self):
+        return self.user.first_name
+    
+    @property
+    def last_name(self):
+        return self.user.last_name
+    
+    @property
+    def email(self):
+        return self.user.email
 
 
 class Cart(models.Model):
