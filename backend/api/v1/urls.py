@@ -32,8 +32,9 @@ urlpatterns = [
     # URL для подтверждения заказа
     path("confirm-order/", order_views.ConfirmOrderView.as_view(), name="order_confirm_api_v1"),
 
-    # URL для истории заказов и деталей заказа
+    # URL для истории заказов
     path("orders/", order_views.OrderHistoryView.as_view(), name="order_history_api_v1"),
+    # URL для детальной информации о заказе
     path("orders/<int:id>/", order_views.OrderDetailView.as_view(), name="order_detail_api_v1"),
 ]
 

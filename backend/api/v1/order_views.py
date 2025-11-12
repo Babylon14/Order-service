@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics, mixins
 from rest_framework.permissions import IsAuthenticated
 
 from backend.models import Cart, Contact, Order, OrderItem
@@ -95,7 +95,7 @@ class ConfirmOrderView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         
 
-class OrderHistoryView(APIView):
+class OrderHistoryView(generics.GenericAPIView, mixins.ListModelMixin):
     """
     API View для получения истории заказов пользователя.
     GET /api/v1/orders/
@@ -111,15 +111,19 @@ class OrderHistoryView(APIView):
         return Order.objects.filter(
             user=self.request.user).prefetch_related("items__product_info")
         
+    def get(self, request, *args, **kwargs):
+        # Вызываем метод из ListModelMixin
+        return self.list(request, *args, **kwargs)
 
-class OrderDetailView(APIView):
+
+class OrderDetailView(generics.GenericAPIView, mixins.RetrieveModelMixin):
     """
     API View для получения деталей КОНКРЕТНОГО заказа.
-    GET /api/v1/orders/<int:id>/
+    GET /api/v1/orders/<int:id>/ 
     """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = "id"
+    lookup_url_kwarg = "id"
 
     def get_queryset(self):
         """
@@ -127,6 +131,10 @@ class OrderDetailView(APIView):
         """
         return Order.objects.filter(
             user=self.request.user).prefetch_related("items__product_info")
+    
+    def get(self, request, *args, **kwargs):
+        # Вызываем метод из RetrieveModelMixin
+        return self.retrieve(request, *args, **kwargs)
 
 
 
