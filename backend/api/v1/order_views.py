@@ -108,6 +108,28 @@ class OrderHistoryView(APIView):
         Возвращает список заказов, принадлежащих текущему пользователю,
         отсортированный по дате создания (новые первыми).
         """
-        return Order.objects.filter(user=self.request.user).prefetch_related("items__product_info")
+        return Order.objects.filter(
+            user=self.request.user).prefetch_related("items__product_info")
         
+
+class OrderDetailView(APIView):
+    """
+    API View для получения деталей КОНКРЕТНОГО заказа.
+    GET /api/v1/orders/<int:id>/
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = "id"
+
+    def get_queryset(self):
+        """
+         Возвращает объекты заказов, принадлежащих текущему пользователю.
+        """
+        return Order.objects.filter(
+            user=self.request.user).prefetch_related("items__product_info")
+
+
+
+
+
 
