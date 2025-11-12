@@ -19,8 +19,24 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     """Сериализатор для заказа."""
     items = OrderItemSerializer(many=True, read_only=True)
+    total_price = serializers.SerializerMethodField() # Общая сумма заказа
+    status_display = serializers.CharField(source="get_status_display", read_only=True) # Отображаемое имя статуса
 
     class Meta:
         model = Order
-        fields = ["id", "created_at", "status", "items"]
+        fields = [
+            "id",             # ID заказа
+            "created_at",     # Дата создания заказа
+            "status",         # Статус заказа
+            "status_display", # Отображаемое имя статуса (например, "Новый")
+            "items",          # Позиции заказа
+            "total_price",    # Общая сумма заказа
+        ]
+
+    def get_total_price(self, obj):
+        """Вычисляет и возвращает общую сумму заказа."""
+        total = 0
+        for item in obj.items.all():  # related_name="items" из OrderItem
+            total += item.product_info.price * item.quantity
+        return total
 

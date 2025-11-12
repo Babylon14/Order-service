@@ -4,7 +4,10 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 
 urlpatterns = [
+
+    # URL для импорта данных конкретного магазина из YAML-файла
     path("import_shop/<int:shop_id>/", views.import_shop_data_api, name="import_shop_data_api_v1"),
+    # URL для импорта всех данных из YAML-файлов
     path("import_all_shops/", views.import_all_shops_data_api, name="import_all_shops_data_api_v1"),
 
     # URL для регистрации и аутентификации пользователя
@@ -20,7 +23,7 @@ urlpatterns = [
     # URL для корзины
     path("cart/", cart_views.CartView.as_view(), name="cart_detail_api_v1"), # Получить/очистить корзину
     path("cart/add/", cart_views.CartItemAddView.as_view(), name="cart_item_add_api_v1"), # Добавить товар
-    path("cart/item/<int:id>/", cart_views.CartItemView.as_view(), name="cart_item_api_v1"), # Обновить количество, удалить товар
+    path("cart/item/<int:id>/", cart_views.CartItemView.as_view(), name="cart_item_api_v1"), # Обновить количество
     
     # URL для контактов
     path("contacts/", contact_views.ContactListView.as_view(), name="contact_list_api_v1"), # Список и создание
