@@ -95,5 +95,19 @@ class ConfirmOrderView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         
 
+class OrderHistoryView(APIView):
+    """
+    API View для получения истории заказов пользователя.
+    GET /api/v1/orders/
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        """
+        Возвращает список заказов, принадлежащих текущему пользователю,
+        отсортированный по дате создания (новые первыми).
+        """
+        return Order.objects.filter(user=self.request.user).prefetch_related("items__product_info")
+        
 
