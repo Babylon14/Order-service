@@ -21,7 +21,7 @@ class EmailConfirmation(models.Model):
     class Meta:
         verbose_name = "Подтверждение электронной почты"
         verbose_name_plural = "Подтверждения электронной почты"
-
+        
     def __str__(self):
         return f"Подтверждение email для {self.user.username} (Токен: {self.token})"
 
