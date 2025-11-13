@@ -1,6 +1,34 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.utils import timezone
+import uuid
+
+
+class EmailConfirmation(models.Model):
+    """Модель для хранения токенов, с подтверждением электронной почты"""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="email_confirmation",
+        verbose_name="Пользователь",
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name="Токен подтверждения")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    is_confirmed = models.BooleanField(default=False, verbose_name="Подтвержден")
+
+    class Meta:
+        verbose_name = "Подтверждение электронной почты"
+        verbose_name_plural = "Подтверждения электронной почты"
+
+    def __str__(self):
+        return f"Подтверждение email для {self.user.username} (Токен: {self.token})"
+
+    def is_expired(self):
+        """Проверяет, истек ли срок действия токена"""
+        expiration_time = timezone.timedelta(hours=24) # Срок действия 24 часа
+        return self.created_at + expiration_time < timezone.now()
 
 
 class User(AbstractUser):
@@ -10,7 +38,6 @@ class User(AbstractUser):
         ("client", "Клиент"),
         ("supplier", "Поставщик"),
     ]
-
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="client")
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
 
