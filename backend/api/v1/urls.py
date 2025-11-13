@@ -36,6 +36,9 @@ urlpatterns = [
     path("orders/", order_views.OrderHistoryView.as_view(), name="order_history_api_v1"),
     # URL для детальной информации о заказе
     path("orders/<int:id>/", order_views.OrderDetailView.as_view(), name="order_detail_api_v1"),
+
+    # URL для подтверждения email
+    path("confirm-email/<uuid:token>", auth_views.ConfirmEmailView.as_view(), name="email_confirmation_api_v1"),
 ]
 
 
