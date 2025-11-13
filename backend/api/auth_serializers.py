@@ -43,9 +43,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def send_confirmation_email(self, user, token):
         """Отправляет письмо с ссылкой для подтверждения."""
+        
         # Ссылка для подтверждения (должна вести на ваш эндпоинт активации)
-        # Замените 'http://your-frontend-domain.com' на адрес вашего фронтенда
-
         confirmation_link = f"http://127.0.0.1:8000/api/v1/confirm-email/{token}/" # Пример URL
         # Отправляем письмо
         subject = "Подтверждение регистрации"

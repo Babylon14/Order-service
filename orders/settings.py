@@ -175,3 +175,16 @@ LOGGING = {
         },
     },
 }
+
+# Настройки email подтверждения
+# Используем консоль для отправки электронных писем
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  
+
+# Для продакшена: настройки SMTP (например, Gmail)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_email@gmail.com'
+# EMAIL_HOST_PASSWORD = "password"
+# DEFAULT_FROM_EMAIL = 'your_email@gmail.com'
