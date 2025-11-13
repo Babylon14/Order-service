@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
+from django.core.mail import send_mail  # Для отправки письма
+from django.conf import settings    # Для доступа к настройкам
+from backend.models import User, EmailConfirmation
 
-from backend.models import User
 
-
+# --- СЕРИАЛИЗАТОРЫ ДЛЯ РЕГИСТРАЦИИ ---
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователя с валидацией пароля."""
 
@@ -21,17 +23,50 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Создает нового пользователя с хешированным паролем."""
+        """Создает нового пользователя, деактивирует его и отправляет письмо подтверждения."""
 
         user = User(
             username=validated_data["email"], # Используем email в качестве username
             first_name=validated_data.get("first_name"),
             last_name=validated_data.get("last_name"),
             email=validated_data["email"],
+            is_active=False, # Деактивируем пользователя до подтверждения
         )
         user.set_password(validated_data["password"]) # Хешируем пароль
         user.save()
+
+        # Создание токена подтверждения
+        confirmation = EmailConfirmation.objects.create(user=user)
+        # Отправляем письмо
+        self.send_confirmation_email(user, confirmation.token)
         return user
+
+    def send_confirmation_email(self, user, token):
+        """Отправляет письмо с ссылкой для подтверждения."""
+        
+        # Ссылка для подтверждения (должна вести на ваш эндпоинт активации)
+        confirmation_link = f"http://127.0.0.1:8000/api/v1/confirm-email/{token}/" # Пример URL
+        # Отправляем письмо
+        subject = "Подтверждение регистрации"
+        message = f"""
+        Здравствуйте, {user.first_name or user.username}!
+
+        Спасибо за регистрацию! Пожалуйста, подтвердите свой email, перейдя по ссылке:
+
+        {confirmation_link}
+
+        Ссылка действительна в течение 24-х часов.
+
+        С уважением,
+        Администрация сервиса.
+        """
+        send_mail(
+            subject,                     # Тема письма
+            message,                     # Текст письма
+            settings.DEFAULT_FROM_EMAIL, # Отправитель
+            [user.email],                # Отправляем письмо на email пользователя
+            fail_silently=False, # Не бросать исключение, если письмо не может быть отправлено
+        )
 
 
 class UserLoginSerializer(serializers.Serializer):
