@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -116,3 +116,45 @@ class SendConfirmationEmailView(generics.CreateAPIView):
             [contact.email],
             fail_silently=False,
         )
+
+
+class ConfirmContactView(generics.CreateAPIView):
+    """
+    API View для подтверждения контакта.
+    POST /api/v1/confirm-contact/<uuid:token>/ - подтвердить контакт
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, token, *args, **kwargs):
+        try:
+            # select_related улучшает производительность, сразу загружая связанный контакт
+            confirmation = ContactConfirmation.objects.select_related("contact").get(token=token)
+        except ContactConfirmation.DoesNotExist:
+            return Response(
+                {
+                "status": "error",
+                "message": "Неверный или истёкший токен подтверждения."
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+        if contact.is_expired():
+            confirmation.delete() # Удаляем истёкший токен
+            return Response(
+                {
+                "status": "error",
+                "message": "Токен подтверждения истек."
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+        # Подтверждаем контакт
+        contact = confirmation.contact
+        contact.is_confirmed = True
+        contact.save()
+
+        # Удаляем токен подтверждения после использования
+        confirmation.delete()
+        return Response(
+            {
+            "status": "success",
+            "message": "Контакт успешно подтверждён!"
+            }, status=status.HTTP_200_OK
+        )
+        
