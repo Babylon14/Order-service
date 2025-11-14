@@ -16,7 +16,7 @@ class EmailConfirmation(models.Model):
     )
     token = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name="Токен подтверждения")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    is_confirmed = models.BooleanField(default=False, verbose_name="Подтвержден")
+    is_confirmed = models.BooleanField(default=False, verbose_name="Подтверждено")
 
     class Meta:
         verbose_name = "Подтверждение электронной почты"
@@ -246,6 +246,7 @@ class Contact(models.Model):
     structure = models.CharField(max_length=15, verbose_name="Корпус", blank=True)
     building = models.CharField(max_length=15, verbose_name="Строение", blank=True)
     apartment = models.CharField(max_length=15, verbose_name="Квартира", blank=True)
+    is_confirmed = models.BooleanField(default=False, verbose_name="Контакт подтверждён")
 
     class Meta:
         verbose_name = "Контакт пользователя"
@@ -266,6 +267,31 @@ class Contact(models.Model):
     @property
     def email(self):
         return self.user.email
+
+
+class ContactConfirmation(models.Model):
+    """Модель для хранения токенов, с подтверждением контакта"""
+
+    contact = models.OneToOneField(
+        Contact,
+        on_delete=models.CASCADE,
+        related_name="confirmation_token",
+        verbose_name="Контакт",
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name="Токен подтверждения")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Подтверждение контакта"
+        verbose_name_plural = "Подтверждения контактов"
+        
+    def __str__(self):
+        return f"Подтверждение контакта для {self.contact.id}: {self.user.username} (Токен: {self.token})"
+
+    def is_expired(self):
+        """Проверяет, истёк ли срок действия токена (например, 24 часа)."""
+        expiration_time = timezone.timedelta(hours=24)
+        return self.created_at + expiration_time < timezone.now()
 
 
 class Cart(models.Model):

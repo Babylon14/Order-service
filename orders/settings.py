@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-kcpk8wo=31u50_8d+)ovs##q@=vqjs1btnbafeuxygy)qyu9t%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -178,13 +178,12 @@ LOGGING = {
 
 # Настройки email подтверждения
 # Используем консоль для отправки электронных писем
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  
 
-# Для продакшена: настройки SMTP (например, Gmail)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your_email@gmail.com'
-# EMAIL_HOST_PASSWORD = "password"
-# DEFAULT_FROM_EMAIL = 'your_email@gmail.com'
+# Другой вариант:
+# Настройки SMTP для MailHog (обычно localhost)
+EMAIL_HOST = "127.0.0.1"  # или 'localhost'
+EMAIL_PORT = 1025         # Порт, на котором слушает MailHog
+EMAIL_USE_TLS = False     # MailHog по умолчанию не использует TLS/SSL
+EMAIL_USE_SSL = False     # MailHog по умолчанию не использует TLS/SSL
+DEFAULT_FROM_EMAIL = "webmaster@localhost" 
