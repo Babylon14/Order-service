@@ -1,4 +1,5 @@
 from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.mail import send_mail
@@ -93,7 +94,7 @@ class SendConfirmationEmailView(generics.CreateAPIView):
     def send_contact_confirmation_email_task(self, contact, token):
         """Отправляет письмо со ссылкой для подтверждения контакта."""
         # Ссылка для подтверждения, которая ведет на эндпоинт активации)
-        confirmation_link = f"http://localhost:8000/api/v1/confirm-contact/{token}/"
+        confirmation_link = f"http://127.0.0.1:8000/api/v1/confirm-contact/{token}/"
         
         subject = "Подтверждение адреса доставки"
         message = f"""
@@ -118,11 +119,12 @@ class SendConfirmationEmailView(generics.CreateAPIView):
         )
 
 
-class ConfirmContactView(generics.CreateAPIView):
+class ConfirmContactView(APIView):
     """
     API View для подтверждения контакта.
     POST /api/v1/confirm-contact/<uuid:token>/ - подтвердить контакт
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request, token, *args, **kwargs):
@@ -136,7 +138,7 @@ class ConfirmContactView(generics.CreateAPIView):
                 "message": "Неверный или истёкший токен подтверждения."
                 }, status=status.HTTP_400_BAD_REQUEST
             )
-        if contact.is_expired():
+        if confirmation.is_expired():
             confirmation.delete() # Удаляем истёкший токен
             return Response(
                 {
