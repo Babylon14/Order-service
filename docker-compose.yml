@@ -34,6 +34,7 @@ services:
         condition: service_healthy
     networks:
       - backend-network
+      
   redis:
     image: redis:alpine
     container_name: redis
