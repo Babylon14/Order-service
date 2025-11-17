@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    "debug_toolbar",
     "backend.apps.BackendConfig",
     "rest_framework_simplejwt",
     "rest_framework",
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -178,7 +179,7 @@ LOGGING = {
 
 # Настройки email подтверждения
 # Используем консоль для отправки электронных писем
-# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  
 
 # Другой вариант:
 # Настройки SMTP для MailHog (обычно localhost)

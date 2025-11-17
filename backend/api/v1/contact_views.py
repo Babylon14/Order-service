@@ -56,9 +56,10 @@ class SendConfirmationEmailView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        """
-        Обрабатывает POST-запрос для отправки письма с подтверждением контакта.
-        """
+        """Обрабатывает POST-запрос для отправки письма с подтверждением контакта."""
+        import time
+        start_time = time.perf_counter() # Записываем время начала выполнения
+
         user = request.user
         contact_id = request.data.get("contact_id")
 
@@ -84,8 +85,19 @@ class SendConfirmationEmailView(generics.CreateAPIView):
         # Создаем новый токен подтверждения
         confirmation = ContactConfirmation.objects.create(contact=contact)
 
+        # --- ЗАМЕРЯЕМ ВРЕМЯ ОТПРАВКИ EMAIL ---
+        email_start_time = time.perf_counter()
         # Отправляем письмо
-        self.send_contact_confirmation_email_task(contact, confirmation.token)
+        self.send_contact_confirmation_email_task(contact, str(confirmation.token))
+        email_end_time = time.perf_counter()
+        email_duration = email_end_time - email_start_time
+        print(f"[DEBUG] время отправки письма: {email_duration:.4f} секунд")
+        # --- КОНЕЦ ЗАМЕРА ---
+
+        end_time = time.perf_counter() # Записываем время окончания выполнения
+        total_duration = end_time - start_time
+        print(f"[DEBUG] Общее время выполнения запроса: {total_duration:.4f} секунд")
+
         return Response(
             {"message": f"Письмо с подтверждением отправлено на {contact.email}."},
             status=status.HTTP_200_OK
