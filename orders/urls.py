@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
+import debug_toolbar
+from django.conf import settings
 from backend.api import views
 
 
@@ -30,4 +31,8 @@ urlpatterns = [
 handler404 = "backend.api.views.page_not_found"
 handler500 = "backend.api.views.server_error"
 
+if settings.DEBUG:
+    urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ] + urlpatterns
 
