@@ -7,6 +7,7 @@ from django.conf import settings
 
 from backend.models import Contact, ContactConfirmation
 from backend.api.contact_serializers import ContactSerializer
+from backend.tasks import send_contact_confirmation_email_task
 
 
 class ContactListView(generics.ListCreateAPIView):
@@ -87,8 +88,9 @@ class SendConfirmationEmailView(generics.CreateAPIView):
 
         # --- ЗАМЕРЯЕМ ВРЕМЯ ОТПРАВКИ EMAIL ---
         email_start_time = time.perf_counter()
-        # Отправляем письмо
-        self.send_contact_confirmation_email_task(contact, str(confirmation.token))
+
+        # Запускаем асинхронную задачу для отправки email-письма
+        send_contact_confirmation_email_task.delay(contact.id, str(confirmation.token))
         email_end_time = time.perf_counter()
         email_duration = email_end_time - email_start_time
         print(f"[DEBUG] время отправки письма: {email_duration:.4f} секунд")
@@ -101,33 +103,6 @@ class SendConfirmationEmailView(generics.CreateAPIView):
         return Response(
             {"message": f"Письмо с подтверждением отправлено на {contact.email}."},
             status=status.HTTP_200_OK
-        )
-
-    def send_contact_confirmation_email_task(self, contact, token):
-        """Отправляет письмо со ссылкой для подтверждения контакта."""
-        # Ссылка для подтверждения, которая ведет на эндпоинт активации)
-        confirmation_link = f"http://127.0.0.1:8000/api/v1/confirm-contact/{token}/"
-        
-        subject = "Подтверждение адреса доставки"
-        message = f"""
-        Здравствуйте, {contact.first_name or contact.user.username}!
-
-        Вы указали этот email ({contact.email}) как адрес доставки.
-        Пожалуйста, подтвердите его, перейдя по ссылке:
-
-        {confirmation_link}
-
-        Ссылка действительна в течение 24-х часов.
-
-        С уважением,
-        Администрация сервиса.
-        """
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [contact.email],
-            fail_silently=False,
         )
 
 
