@@ -2,12 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 
 from backend.models import Shop
 from backend.tasks import import_all_shops_data_task, import_shop_data_task
 
 
-# --- API View-класс для запуска импорта всех магазинов ---
+# --- API View-класс для запуска импорта ВСЕХ магазинов ---
 class StartImportAllShopsView(APIView):
     """
     API View для запуска асинхронного импорта данных *ВСЕХ* активных магазинов.
@@ -20,8 +21,21 @@ class StartImportAllShopsView(APIView):
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED) # Возвращаем id задачи
 
 
+# --- Класс для запуска импорта КОНКРЕТНОГО магазина ---
+class StartImportShopView(APIView):
+    """
+    API View для запуска асинхронного импорта данных КОНКРЕТНОГО магазина.
+    POST /api/v1/start-import-shop/<int:shop_id>/
+    """
+    permission_classes = [IsAuthenticated]
 
-
+    def post(self, request, shop_id, *args, **kwargs):
+        yaml_file_path = request.data.get("yaml_file_path")
+        task = import_shop_data_task.delay(shop_id, yaml_file_path) # Запускаем Celery-задачу
+        return Response(
+            {"task_id": task.id, "message": f"Импорт магазина {shop_id} начат."},
+            status=status.HTTP_202_ACCEPTED
+        ) # Возвращаем id задачи
 
 
 
