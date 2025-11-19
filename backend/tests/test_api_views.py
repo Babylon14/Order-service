@@ -62,3 +62,18 @@ class ImportApiViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+    @patch("backend.api.v1.api_views.import_shop_data_task")
+    def test_start_import_shop_authorized(self, mock_task):
+        """Тест: запуск импорта магазина с аутентификацией (ожидаем 202)."""
+        mock_task.delay.return_value.id = "test_task_id_shop_67890" # Имитируем id задачи
+
+        self.client.force_authenticate(user=self.user)
+        url = reverse("start_import_shop_api_v1", kwargs={"shop_id": self.shop.id})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data["task_id"], "test_task_id_shop_67890")
+
+        # Проверяем, что задача была вызвана с правильными аргументами
+        mock_task.delay.assert_called_once_with(self.shop.id, None)
+
