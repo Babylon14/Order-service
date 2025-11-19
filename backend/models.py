@@ -286,7 +286,7 @@ class ContactConfirmation(models.Model):
         verbose_name_plural = "Подтверждения контактов"
         
     def __str__(self):
-        return f"Подтверждение контакта для {self.contact.id}: {self.user.username} (Токен: {self.token})"
+        return f"Подтверждение контакта для {self.contact.id}: {self.contact.user.username} (Токен: {self.token})"
 
     def is_expired(self):
         """Проверяет, истёк ли срок действия токена (например, 24 часа)."""
