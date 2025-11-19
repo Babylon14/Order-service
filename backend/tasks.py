@@ -2,6 +2,7 @@
 from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
+from .models import Shop
 from backend.utils import load_shop_data_from_yaml
 
 
@@ -55,10 +56,24 @@ def send_contact_confirmation_email_task(contact_id, token):
         return f"Контакт с ID {contact_id} не был найден. Письмо не отправлено."
 
 
-# --- АСИНХРОННЫЕ ЗАДАЧИ для импорта данных магазина ---
-@shared_task
-def import_shop_data_task(shop_id: int, yaml_file_path: str):
-    """Асинхронная задача для импорта данных КОНКРЕТНОГО магазина."""
-    return load_shop_data_from_yaml(shop_id, yaml_file_path)
-    
+# --- СИНХРОННЫЕ ФУНКЦИИ ЛОГИКИ (перенесены из views.py) ---
+def import_shop_data_logic(shop_id: int, yaml_file_path: str = None) -> dict:
+    """
+    Синхронная логика импорта данных КОНКРЕТНОГО магазина.
+    Не зависит от Celery или DRF.
+    """
+    try:
+        shop = Shop.objects.get(id=shop_id)
+    except Shop.DoesNotExist:
+        print(f"Ошибка: магазин с ID {shop_id} не существует.")
+        return {"status": "error", "message": f"Магазин с ID {shop_id} не был найден."}
 
+    # Если yaml_file_path не был предоставлен, получаем его из модели
+    if yaml_file_path is None:
+        yaml_file_path = shop.get_source_file_path()
+    
+    # Вызываем основную функцию импорта из utils
+    return load_shop_data_from_yaml(shop_id=shop.id, yaml_file_path=yaml_file_path)
+
+
+# --- CELERY ЗАДАЧИ (вызывают синхронную логику) ---
