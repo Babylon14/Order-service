@@ -49,8 +49,16 @@ class ImportApiViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.assertEqual(response.data["task_id"], "test_task_id_12345")
-        
+
         # Проверяем, что задача была вызвана
         mock_task.delay.assert_called_once()
+
+
+    def test_get_import_status_unauthorized(self):
+        """Тест: получение статуса импорта БЕЗ аутентификации (ожидаем 401/403)."""
+        url = reverse("get_import_status_api_v1", kwargs={"task_id": "dummy_task_id"}) # Имитируем id задачи
+        response = self.client.get(url)
+        # Предполагаем, что permission_classes = [permissions.IsAuthenticated]
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
