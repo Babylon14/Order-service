@@ -25,7 +25,19 @@ class ImportApiViewTestCase(TestCase):
         # Создаём тестовый магазин
         self.shop = Shop.objects.create(
             name="Test Shop",
-            source_file="data/test_shop1.yaml",
+            source_file="data/test_shop.yaml",
             state=True,
             user=self.user
         )
+    
+    def test_start_import_all_shops_unauthorized(self):
+        """Тест: запуск импорта БЕЗ аутентификации (ожидаем 401/403)."""
+        url = reverse("start_import_all_shops_api_v1")
+        response = self.client.post(url)
+        # Предполагаем, что permission_classes = [permissions.IsAuthenticated]
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+
+
+        
