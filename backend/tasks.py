@@ -2,8 +2,10 @@
 from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
+from backend.utils import load_shop_data_from_yaml
 
 
+# --- АСИНХРОННЫЕ ЗАДАЧИ для отправки email-писем ---
 @shared_task
 def send_email_task(subject, message, recipient_list):
     """Отправка email-письма"""
@@ -51,4 +53,12 @@ def send_contact_confirmation_email_task(contact_id, token):
         return f"Письмо с подтверждением отправлено на {contact.email} (Контакт ID: {contact_id})"
     except Contact.DoesNotExist:
         return f"Контакт с ID {contact_id} не был найден. Письмо не отправлено."
+
+
+# --- АСИНХРОННЫЕ ЗАДАЧИ для импорта данных магазина ---
+@shared_task
+def import_shop_data_task(shop_id: int, yaml_file_path: str):
+    """Асинхронная задача для импорта данных КОНКРЕТНОГО магазина."""
+    return load_shop_data_from_yaml(shop_id, yaml_file_path)
+    
 
