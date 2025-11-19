@@ -122,4 +122,15 @@ def import_all_shops_data_logic() -> dict:
     }
 
 
-# --- CELERY ЗАДАЧИ (вызывают синхронную логику) ---
+# --- CELERY ЗАДАЧИ для импорта данных магазина/магазинов (вызывают синхронную логику) ---
+@shared_task
+def import_shop_data_task(shop_id: int, yaml_file_path: str = None) -> dict:
+    """Асинхронная Celery-задача для импорта данных ОДНОГО магазина."""
+    return import_shop_data_logic(shop_id=shop_id, yaml_file_path=yaml_file_path)
+
+
+@shared_task
+def import_all_shops_data_task() -> dict:
+    """Асинхронная Celery-задача для импорта данных *ВСЕХ* активных магазинов."""
+    return import_all_shops_data_logic()
+
