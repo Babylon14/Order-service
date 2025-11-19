@@ -2,10 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from django.shortcuts import get_object_or_404
 from celery.result import AsyncResult
 
-from backend.models import Shop
 from backend.tasks import import_all_shops_data_task, import_shop_data_task
 
 
@@ -22,7 +20,7 @@ class StartImportAllShopsView(APIView):
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED) # Возвращаем id задачи
 
 
-# --- Класс для запуска импорта КОНКРЕТНОГО магазина ---
+# --- API View-класс для запуска импорта КОНКРЕТНОГО магазина ---
 class StartImportShopView(APIView):
     """
     API View для запуска асинхронного импорта данных КОНКРЕТНОГО магазина.
@@ -79,3 +77,4 @@ class GetImportStatusView(APIView):
             }
 
         return Response(response)
+

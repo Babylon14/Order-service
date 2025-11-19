@@ -1,14 +1,15 @@
 from django.urls import path
-from . import auth_views, views, product_views, cart_views, contact_views, order_views
+from . import api_views, auth_views, product_views, cart_views, contact_views, order_views
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
 urlpatterns = [
-
-    # URL для импорта данных конкретного магазина из YAML-файла
-    path("import_shop/<int:shop_id>/", views.import_shop_data_api, name="import_shop_data_api_v1"),
-    # URL для импорта всех данных из YAML-файлов
-    path("import_all_shops/", views.import_all_shops_data_api, name="import_all_shops_data_api_v1"),
+    # URL для импорта всех данных из YAML-файлов + Celery-задача
+    path("start-import-all-shops/", api_views.StartImportAllShopsView.as_view(), name="start_import_all_shops_api_v1"),
+    # URL для импорта данных конкретного магазина из YAML-файла + Celery-задача
+    path("start-import-shop/<int:shop_id>/", api_views.StartImportShopView.as_view(), name="start_import_shop_api_v1"),
+    # URL для статуса импорта
+    path("import-status/<task_id>/", api_views.GetImportStatusView.as_view(), name="get_import_status_api_v1"),
 
     # URL для регистрации и аутентификации пользователя
     path("register/", auth_views.UserRegistrationAPIView.as_view(), name="user_registration_api_v1"),
