@@ -3,7 +3,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from backend.models import Order, OrderItem, Cart, CartItem, ProductInfo, Shop, Product, Category, Contact
+from backend.models import (Order, OrderItem, Cart, CartItem, ProductInfo,
+                             Shop, Product, Category, Contact)
 
 
 User = get_user_model()
@@ -43,7 +44,27 @@ class OrderAPIViewTestCase(TestCase):
             house_number="1"
         )
 
+    def test_confirm_order(self):
+        """Тест: подтверждение заказа."""
+        # Сначала добавим товар в корзину
+        cart, created = Cart.objects.get_or_create(user=self.user)
+        CartItem.objects.create(cart=cart, product_info=self.product_info, quantity=2)
 
+        order_url = reverse("order_confirm_api_v1")
+        order_data = {
+            "cart_id": cart.id,
+            "contact_id": self.contact.id
+        }
+        response = self.client.post(order_url, order_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Проверка, что заказ создан
+        self.assertTrue(Order.objects.filter(user=self.user).exists())
+        # Проверка, что корзина очищена
+        self.assertEqual(CartItem.objects.filter(cart=cart).count(), 0)
+        # Проверка, что количество на складе уменьшилось
+        self.product_info.refresh_from_db()
+        self.assertEqual(self.product_info.quantity, 8) # Было 10, добавили 2, стало 8
 
 
 
