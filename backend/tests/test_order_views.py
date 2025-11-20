@@ -67,5 +67,15 @@ class OrderAPIViewTestCase(TestCase):
         self.assertEqual(self.product_info.quantity, 8) # Было 10, добавили 2, стало 8
 
 
+    def test_get_order_history(self):
+        """Тест: получение истории заказов."""
+        # Создадим заказ (например, через confirm_order или вручную)
+        order = Order.objects.create(user=self.user)
 
+        order_url = reverse("order_history_api_v1")
+        response = self.client.get(order_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Проверка, что заказ в списке
+        self.assertContains(response, str(order.id))
 
