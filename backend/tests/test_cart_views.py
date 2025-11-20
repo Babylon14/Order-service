@@ -41,3 +41,18 @@ class CartAPIViewTestCase(TestCase):
         self.assertEqual(len(response.data["items"]), 0)
 
 
+    def test_add_item_to_cart(self):
+        """Тест: добавление товара в Корзину."""
+        url = reverse("cart_item_add_api_v1")
+        data = {
+            "product_info_id": self.product_info.id,
+            "quantity": 2
+        }
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["quantity"], 2)
+        # Проверка, что товар действительно добавлен в БД
+        self.assertEqual(CartItem.objects.filter(
+            cart__user=self.user, product_info=self.product_info).count(), 1)
+
