@@ -44,5 +44,22 @@ class ContactAPIViewTestCase(TestCase):
         self.assertTrue(Contact.objects.filter(user=self.user, email="ivanov@example.com").exists())
 
 
+    def test_get_contacts_list(self):
+        """Тест: получение списка контактов."""
+        Contact.objects.create(
+            user=self.user,
+            first_name="Тест",
+            last_name="Контакт",
+            email="test_contact@example.com",
+            phone="+70000000000",
+            city="Тест",
+            street="Тест",
+            house_number="1"
+        )
+        url = reverse("contact_list_api_v1")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
 
 
