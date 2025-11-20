@@ -21,10 +21,10 @@ class AuthAPIViewTestCase(TestCase):
         url = reverse("user_registration_api_v1")
         data = {
             "first_name": "Тест",
-            "last_name": "Тестов",
-            "email": "test4@example.com",
-            "password": "zxcvbnm,",
-            "user_type": "zxcvbnm,"
+            "last_name": "Тестовский",
+            "email": "test5@example.com",
+            "password": "testpass123",
+            "user_type": "testpass123"
         }
         response = self.client.post(url, data, format="json")
 
@@ -32,6 +32,29 @@ class AuthAPIViewTestCase(TestCase):
         self.assertTrue(User.objects.filter(email="test4@example.com").exists())
 
 
+    def test_user_login(self):
+        """Тест: вход пользователя (ожидаем 200)."""
+        # Сначала зарегистрируем пользователя
+        register_url = reverse("user_registration_api_v1")
+        register_data = {
+            "first_name": "Тест",
+            "last_name": "Тестовский",
+            "email": "test5@example.com",
+            "password": "testpass123",
+            "user_type": "testpass123"
+        }
+        self.client.post(register_url, register_data, format="json")
 
+        # Теперь попробуем войти
+        login_url = reverse("token_obtain_pair_api_v1")
+        login_data = {
+            "email": "test5@example.com",
+            "password": "testpass123"
+        }
+        response = self.client.post(login_url, login_data, format="json")
 
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access" in response.data)
+        self.assertIn("refresh" in response.data)
+        
 
