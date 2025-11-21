@@ -3,8 +3,8 @@ from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from backend.models import User
 
+User = get_user_model()
 
 class AuthAPIViewTestCase(APITestCase):
     """Тестирование API-вьюхи аутентификации."""
