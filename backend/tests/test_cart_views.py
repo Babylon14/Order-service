@@ -30,6 +30,7 @@ class CartAPIViewTestCase(TestCase):
             shop=self.shop,
             name="Тестовая информация о товаре",
             price=100.00,
+            price_rrc=110.00,
             quantity=10
         )
 
