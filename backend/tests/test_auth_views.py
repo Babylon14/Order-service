@@ -9,7 +9,7 @@ User = get_user_model()
 class AuthAPIViewTestCase(APITestCase):
     """Тестирование API-вьюхи аутентификации."""
     def setUp(self):
-        """Общаие настройки тестового клиента и пользователя."""
+        """Общие настройки тестового клиента и пользователя."""
         self.register_url = reverse("user_registration_api_v1")
         self.login_url = reverse("token_obtain_pair_api_v1")
 
