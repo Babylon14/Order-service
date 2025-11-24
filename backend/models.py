@@ -239,6 +239,10 @@ class Contact(models.Model):
         related_name="contacts", # Связь с моделью пользователя
         verbose_name="Пользователь"
     )
+
+    first_name = models.CharField(max_length=50, verbose_name="Имя")
+    last_name = models.CharField(max_length=50, verbose_name="Фамилия")
+    email = models.EmailField(verbose_name="Электронная почта")
     phone = models.CharField(max_length=20, verbose_name="Телефон")
     city = models.CharField(max_length=50, verbose_name="Город", default="Город не указан")
     street = models.CharField(max_length=100, verbose_name="Улица", default="Улица не указана")
@@ -251,22 +255,10 @@ class Contact(models.Model):
     class Meta:
         verbose_name = "Контакт пользователя"
         verbose_name_plural = "Список контактов пользователя"
-        ordering = ["user", "user__last_name", "user__first_name"]
+        ordering = ["user", "first_name", "last_name"]
 
     def __str__(self):
-        return f"{self.user.username} - {self.user.last_name} {self.user.first_name} - {self.city}, {self.street}"
-
-    @property
-    def first_name(self):
-        return self.user.first_name
-    
-    @property
-    def last_name(self):
-        return self.user.last_name
-    
-    @property
-    def email(self):
-        return self.user.email
+        return f"{self.user.username} - {self.last_name} {self.first_name} - {self.city}, {self.street}"
 
 
 class ContactConfirmation(models.Model):
