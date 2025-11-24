@@ -2,8 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 from celery.result import AsyncResult
 
+from backend.models import Shop
 from backend.tasks import import_all_shops_data_task, import_shop_data_task
 
 
@@ -29,12 +31,14 @@ class StartImportShopView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, shop_id, *args, **kwargs):
-        yaml_file_path = request.data.get("yaml_file_path")
+        shop = get_object_or_404(Shop, id=shop_id) # Проверяем существование магазина
+        yaml_file_path = request.data.get("yaml_file_path") # Получаем путь к YAML-файлу
         task = import_shop_data_task.delay(shop_id, yaml_file_path) # Запускаем Celery-задачу
+
         return Response(
-            {"task_id": task.id, "message": f"Импорт магазина {shop_id} начат."},
+            {"task_id": task.id, "message": f"Импорт магазина {shop.name} начат."},
             status=status.HTTP_202_ACCEPTED
-        ) # Возвращаем id задачи
+        )
 
 
 # --- Класс для получения статуса задачи ---

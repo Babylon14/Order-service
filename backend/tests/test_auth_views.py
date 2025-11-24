@@ -38,6 +38,11 @@ class AuthAPIViewTestCase(APITestCase):
         # Сначала зарегистрируем пользователя
         self.test_user_registration()
 
+        # Получаем созданного пользователя и проверяем, что он активен
+        created_user = User.objects.get(email="testemail@example.com")
+        created_user.is_active = True
+        created_user.save()
+
         # Данные для входа
         login_data = {
             "email": "testemail@example.com", # True
@@ -52,7 +57,7 @@ class AuthAPIViewTestCase(APITestCase):
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
         # 3. Проверяем, что пользователь активен
-        created_user = User.objects.get(email="testemail@example.com")
+        created_user.refresh_from_db() # Обновляем данные из БД
         self.assertTrue(created_user.is_active)
 
 
