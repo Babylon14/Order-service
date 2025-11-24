@@ -240,9 +240,9 @@ class Contact(models.Model):
         verbose_name="Пользователь"
     )
 
-    first_name = models.CharField(max_length=50, verbose_name="Имя")
-    last_name = models.CharField(max_length=50, verbose_name="Фамилия")
-    email = models.EmailField(verbose_name="Электронная почта")
+    first_name = models.CharField(max_length=50, default="", blank=True, verbose_name="Имя")
+    last_name = models.CharField(max_length=50, default="", blank=True, verbose_name="Фамилия")
+    email = models.EmailField(verbose_name="Электронная почта", blank=True)
     phone = models.CharField(max_length=20, verbose_name="Телефон")
     city = models.CharField(max_length=50, verbose_name="Город", default="Город не указан")
     street = models.CharField(max_length=100, verbose_name="Улица", default="Улица не указана")
