@@ -18,6 +18,8 @@ class CartAPIViewTestCase(APITestCase):
             email="cartuser@example.com",
             password="testpass123",
         )
+        # Создаем корзину для пользователя
+        Cart.objects.create(user=self.cart_user)
         self.client.force_authenticate(user=self.cart_user) # Аутентификация пользователя
 
         # Создаём необходимые объекты для тестов Корзины

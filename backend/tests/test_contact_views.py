@@ -10,7 +10,7 @@ User = get_user_model()
 
 class ContactAPIViewTestCase(APITestCase):
     """Тестирование API контактов."""
-    def SetUp(self):
+    def setUp(self):
         """Общие настройки тестового клиента и пользователя."""
         # Создаём тестового пользователя
         self.contact_user = User.objects.create_user(
@@ -19,12 +19,6 @@ class ContactAPIViewTestCase(APITestCase):
             password="testpass123"
         )
         self.client.force_authenticate(user=self.contact_user) # Аутентификация пользователя
-
-        # Url-адреса для тестирования
-        self.contact_list_url = reverse("contact_list_api_v1") # GET /api/v1/contacts/, POST /api/v1/contacts/
-        self.contact_detail_url = reverse("contact_detail_api_v1", kwargs={"contact_id": self.contact.id}) # GET /api/v1/contacts/<int:contact_id>/,
-        # PUT /api/v1/contacts/<int:contact_id>/, PATCH /api/v1/contacts/<int:contact_id>/, 
-        # DELETE /api/v1/contacts/<int:contact_id>/
 
         # Создание тестового контакта для CRUD тестов
         self.contact_data = {
@@ -40,6 +34,9 @@ class ContactAPIViewTestCase(APITestCase):
             "apartment": "1111"
         }
         self.contact = Contact.objects.create(user=self.contact_user, **self.contact_data)
+
+        # Url-адреса для тестирования
+        self.contact_list_url = reverse("contact_list_api_v1") # GET /api/v1/contacts/, POST /api/v1/contacts/
 
 
     def test_create_contact(self):
@@ -88,6 +85,11 @@ class ContactAPIViewTestCase(APITestCase):
 
     def test_get_contact_detail(self):
         """Тест: GET-получение конкретного контакта."""
+        self.contact_detail_url = reverse("contact_detail_api_v1", kwargs={"contact_id": self.contact.id}) 
+        # GET /api/v1/contacts/<int:contact_id>/,
+        # PUT /api/v1/contacts/<int:contact_id>/, PATCH /api/v1/contacts/<int:contact_id>/, 
+        # DELETE /api/v1/contacts/<int:contact_id>/
+
         # Отправляем GET-запрос на эндпоинт детализации контакта
         response = self.client.get(self.contact_detail_url)
 
