@@ -19,7 +19,10 @@ class StartImportAllShopsView(APIView):
 
     def post(self, request, *args, **kwargs):
         task = import_all_shops_data_task.delay() # Запускаем Celery-задачу
-        return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED) # Возвращаем id задачи
+        return Response(
+            {"task_id": task.id, "message": "Импорт всех магазинов начат."},
+            status=status.HTTP_202_ACCEPTED
+        )
 
 
 # --- API View-класс для запуска импорта КОНКРЕТНОГО магазина ---

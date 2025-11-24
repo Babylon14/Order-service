@@ -28,7 +28,7 @@ class ContactAPIViewTestCase(APITestCase):
             "phone": "+79999999999",
             "city": "Москва",
             "street": "Тестовая улица",
-            "house_number": "1",
+            "house": "1",
             "building": "A",
             "structure": "",
             "apartment": "1111"
@@ -49,7 +49,7 @@ class ContactAPIViewTestCase(APITestCase):
             "phone": "+79997654321",
             "city": "Санкт-Петербург",
             "street": "Невский проспект",
-            "house_number": "2",
+            "house": "2",
             "building": "",
             "structure": "Б",
             "apartment": "20"
@@ -110,7 +110,7 @@ class ContactAPIViewTestCase(APITestCase):
             "phone": "+79991112233",
             "city": "Новосибирск",
             "street": "Красный проспект",
-            "house_number": "3",
+            "house": "3",
             "building": "В",
             "structure": "",
             "apartment": "30"

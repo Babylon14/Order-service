@@ -58,20 +58,25 @@ class CartItemAddView(generics.CreateAPIView):
         )
         if not created:
             # Если товар уже был в корзине, увеличиваем количество
+            original_quantity = cart_item.quantity
             cart_item.quantity += quantity
             # Проверим, не превышает ли новое количество доступное
             if cart_item.quantity > product_info.quantity:
-                cart_item.quantity = product_info.quantity  # Ограничиваем доступным количеством
+                # Восстанавливаем оригинальное количество, если лимит превышен
+                cart_item.quantity = original_quantity
                 # Возвращаем предупреждение
                 return Response({
                     "message": f"Количество ограничено доступным запасом: {product_info.quantity}.",
-                        "cart_item": CartItemSerializer(cart_item).data}, status=status.HTTP_200_OK
+                    "cart_item": CartItemSerializer(cart_item).data
+                }, status=status.HTTP_200_OK
                 )
             cart_item.save()
-
-        # Возвращаем обновленную позицию
+            # Возвращаем обновленную позицию и 200 OK при обычном обновлении
+            serializer = CartItemSerializer(cart_item)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        # Возвращаем новую позицию и 201 CREATED при создании
         serializer = CartItemSerializer(cart_item)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)    
 
 
 class CartItemView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):

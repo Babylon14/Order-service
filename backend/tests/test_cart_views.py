@@ -20,6 +20,7 @@ class CartAPIViewTestCase(APITestCase):
         )
         # Создаем корзину для пользователя
         Cart.objects.create(user=self.cart_user)
+
         self.client.force_authenticate(user=self.cart_user) # Аутентификация пользователя
 
         # Создаём необходимые объекты для тестов Корзины
@@ -111,17 +112,16 @@ class CartAPIViewTestCase(APITestCase):
 
 
     def test_update_cart_item_quantity(self):
-        """Тест: обновление количества товара в корзине."""
+        """Тест: ОБНОВЛЕНИЕ количества товара в корзине."""
         # Добавляем товар в корзину
         cart_item = CartItem.objects.create(
             cart=self.cart_user.cart,
             product_info=self.product_info,
             quantity=5
         )
-        cart_item_id = cart_item.id
 
         # URL для обновления конкретного элемента
-        cart_item_update_url = reverse("cart_item_api_v1", kwargs={"cart_item_id": cart_item_id})
+        cart_item_update_url = reverse("cart_item_api_v1", kwargs={"cart_item_id": cart_item.id})
 
         data = {
             "quantity": 7
@@ -145,7 +145,7 @@ class CartAPIViewTestCase(APITestCase):
         """Тест: удаление товара из корзины."""
         # Добавляем товар в корзину
         cart_item = CartItem.objects.create(
-            cart=self.user.cart,
+            cart=self.cart_user.cart,
             product_info=self.product_info,
             quantity=3
         )
@@ -170,7 +170,7 @@ class CartAPIViewTestCase(APITestCase):
         """Тест: получение корзины с добавленными товарами."""
         # Добавим несколько товаров
         CartItem.objects.create(
-            cart=self.user.cart,
+            cart=self.cart_user.cart,
             product_info=self.product_info,
             quantity=2
         )
@@ -184,7 +184,7 @@ class CartAPIViewTestCase(APITestCase):
             quantity=4
         )
         CartItem.objects.create(
-            cart=self.user.cart,
+            cart=self.cart_user.cart,
             product_info=another_product_info,
             quantity=1
         )
