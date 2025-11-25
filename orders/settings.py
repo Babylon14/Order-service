@@ -65,7 +65,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'orders.wsgi.application'
 
 # Если запущены тесты — используем SQLite
-if "test" in sys.argv or os.environ.get("ci") == "true":
+if "test" in sys.argv or os.environ.get("CI") == "true":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
