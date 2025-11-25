@@ -1,31 +1,40 @@
 name: Django CI
-
-on: [push, pull_request]
+env:  
+    SECRET_KEY: "any_dummy_secret_key_for_tests"
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.13' # Укажите вашу версию
+        python-version: '3.13' 
         
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
-        pip install coverage  # Убедитесь, что coverage установлен
+        python -m pip install --upgrade pip
+        pip install uv 
+        # pip install -r requirements.txt
         
     - name: Run tests and collect coverage
       run: |
         coverage run manage.py test
-        coverage xml  # Генерирует отчет для Codecov
+        coverage xml 
 
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
-        files: ./coverage.xml
-        fail_ci_if_error: true
-        # token: ${{ secrets.CODECOV_TOKEN }} # РАСКОММЕНТИРОВАТЬ ЕСЛИ РЕПОЗИТОРИЙ ПРИВАТНЫЙ
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false # (опционально) не останавливать CI при ошибке отправки
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Переменная окружения для токена
