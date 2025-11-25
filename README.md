@@ -686,5 +686,5 @@ python manage.py migrate
 
 ## Благодарности
 
-Проект создан с использованием Django и Django REST Framework. Благодарю всех со всей силы!
+Проект создан с использованием Django и Django REST Framework. Благодарю всех со всей силы!!
 
