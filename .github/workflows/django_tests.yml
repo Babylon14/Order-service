@@ -27,7 +27,7 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        coverage run --source='backend' manage.py test backend.tests
+        coverage run manage.py test 
         coverage xml 
 
     - name: Upload coverage to Codecov
