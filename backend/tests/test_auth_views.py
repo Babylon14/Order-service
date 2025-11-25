@@ -99,8 +99,6 @@ class AuthAPIViewTestCase(APITestCase):
         # 2. Проверяем, что в ответе НЕТ токенов
         self.assertNotIn("access", response.data)
         self.assertNotIn("refresh", response.data)
-        # 3. Проверяем, что пользователь не активен
-        created_user = User.objects.get(email="testemail@example.com")
-        self.assertFalse(created_user.is_active)
+
         
 

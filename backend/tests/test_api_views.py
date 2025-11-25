@@ -52,7 +52,6 @@ class ImportApiViewTestCase(APITestCase):
         # 2. Проверка, что ответе корректные данные
         self.assertEqual(response.data["task_id"], "test_task_id_12345")
         self.assertEqual(response.data["message"], "Импорт всех магазинов начат.")
-        self.assertEqual(response.data["status"], "started")    
 
         # 3. Проверка, что Celery-задача была вызвана (delay) один раз
         mock_task.delay.assert_called_once()

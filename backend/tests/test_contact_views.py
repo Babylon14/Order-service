@@ -44,7 +44,6 @@ class ContactAPIViewTestCase(APITestCase):
         new_contact_data = {
             "first_name": "Петр",
             "last_name": "Петров",
-            "middle_name": "Петрович",
             "email": "petrov@example.com",
             "phone": "+79997654321",
             "city": "Санкт-Петербург",
@@ -55,12 +54,13 @@ class ContactAPIViewTestCase(APITestCase):
             "apartment": "20"
         }
         # Отправляем POST-запрос на эндпоинт создания контакта
-        response = self.client.post(self.contact_list_url, self.contact_data, format="json")
+        response = self.client.post(self.contact_list_url, new_contact_data, format="json")
 
         # 1. Проверка на успешное создание контакта (201 Created)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # 2. Проверка, что данные корретны
         self.assertEqual(response.data["first_name"], "Петр")
+        self.assertEqual(response.data["last_name"], "Петров")
         self.assertEqual(response.data["email"], "petrov@example.com")
         # 3. Проверка, что контакт был создан в БД
         self.assertTrue(Contact.objects.filter(user=self.contact_user, email="petrov@example.com").exists())
@@ -85,13 +85,13 @@ class ContactAPIViewTestCase(APITestCase):
 
     def test_get_contact_detail(self):
         """Тест: GET-получение конкретного контакта."""
-        self.contact_detail_url = reverse("contact_detail_api_v1", kwargs={"contact_id": self.contact.id}) 
+        contact_detail_url = reverse("contact_detail_api_v1", kwargs={"id": self.contact.id}) 
         # GET /api/v1/contacts/<int:contact_id>/,
         # PUT /api/v1/contacts/<int:contact_id>/, PATCH /api/v1/contacts/<int:contact_id>/, 
         # DELETE /api/v1/contacts/<int:contact_id>/
 
         # Отправляем GET-запрос на эндпоинт детализации контакта
-        response = self.client.get(self.contact_detail_url)
+        response = self.client.get(contact_detail_url)
 
         # 1. Проверка на успешное получение контакта (200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -115,8 +115,9 @@ class ContactAPIViewTestCase(APITestCase):
             "structure": "",
             "apartment": "30"
         }
+        contact_detail_url = reverse("contact_detail_api_v1", kwargs={"id": self.contact.id}) 
         # Отправляем PUT-запрос на эндпоинт обновления контакта
-        response = self.client.put(self.contact_detail_url, updated_data, format="json")
+        response = self.client.put(contact_detail_url, updated_data, format="json")
 
         # 1. Проверка на успешное обновление контакта (200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -135,8 +136,9 @@ class ContactAPIViewTestCase(APITestCase):
             "first_name": "Трофим",  # Обновляем имя
             "phone": "+79995556677", # Обновляем телефон
         }
+        contact_detail_url = reverse("contact_detail_api_v1", kwargs={"id": self.contact.id}) 
         # Отправляем PATCH-запрос на эндпоинт обновления контакта
-        response = self.client.patch(self.contact_detail_url, partial_data, format="json")
+        response = self.client.patch(contact_detail_url, partial_data, format="json")
 
         # 1. Проверка на успешное обновление контакта (200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -157,8 +159,9 @@ class ContactAPIViewTestCase(APITestCase):
         # 1. Проверка, что контакт существует 
         self.assertTrue(Contact.objects.filter(id=self.contact.id).exists())
 
+        contact_detail_url = reverse("contact_detail_api_v1", kwargs={"id": self.contact.id}) 
         # Отправляем DELETE-запрос на эндпоинт удаления контакта
-        response = self.client.delete(self.contact_detail_url)
+        response = self.client.delete(contact_detail_url)
 
         # 2. Проверка на успешное удаление контакта (204 No Content)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

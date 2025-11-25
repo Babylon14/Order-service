@@ -33,7 +33,7 @@ class CartAPIViewTestCase(APITestCase):
             shop=self.shop,
             price=100.00,
             price_rrc=110.00,
-            quantity=2
+            quantity=5 # Количество товара в магазине, ограничивающее количество в корзине
         )
         # Url-адреса для тестирования
         self.cart_detail_url = reverse("cart_detail_api_v1")  # GET /api/v1/cart/
@@ -82,33 +82,38 @@ class CartAPIViewTestCase(APITestCase):
 
     def test_add_item_to_cart_update_quantity(self):
         """Тест: добавление товара, который уже есть в корзине (обновление количества)."""
-        # Добавление товара
-        CartItem.objects.create(
-           cart=self.cart_user.cart, 
-           product_info=self.product_info,
-           quantity=1 
-        ) 
-        # 1. Проверим начальное количество
-        initial_cart_item = CartItem.objects.get(cart__user=self.cart_user, product_info=self.product_info)
-        self.assertEqual(initial_cart_item.quantity, 1)
-
-        # Теперь добавим ещё 3 штуки того же товара
-        data = {
+        # Сначала добавим 1 штуку товара в корзину (ожидаем 201)
+        initial_data = {
             "product_info_id": self.product_info.id,
-            "quantity": 3
+            "quantity": 1
         }
-        # Отправляем POST запрос
-        response = self.client.post(self.cart_add_url, data, format="json")
+        # Отправляем POST-запрос на добавление товара в Корзину
+        initial_response = self.client.post(self.cart_add_url, initial_data, format="json")
+        
+        # 1. Проверка статус ответа 201
+        self.assertEqual(initial_response.status_code, status.HTTP_201_CREATED)
 
-        # 2. Проверяем ответ 201
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # 3. Проверяем, что количество товара увеличилось: 1 (было) + 3 (добавили) = 4
-        self.assertEqual(response.data["quantity"], 4)
-        self.assertEqual(response.data["total_price"], 400.00) # 4 * 100.00 = 400.00
+        # Предполагаем, что что после создания quantity = 1
+        initial_quantity = initial_response.data["quantity"] # 1
+        print(f"Начальное количество товара в корзине: {initial_quantity}")
 
-        # 4. Проверяем БД
+        # Теперь добавим ещё 2 штуки того же товара (ожидаем 200, так как обновление)
+        update_data = {
+            "product_info_id": self.product_info.id,
+            "quantity": 2
+        }
+        response = self.client.post(self.cart_add_url, update_data, format="json")
+
+        # 2. Проверка, что статус 200 (обновление существующего элемента)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 3. Проверка, что количество товара увеличилось: 1 (было) + 2 (добавили) = 3
+        expected_new_quantity = initial_quantity + update_data["quantity"] # 1 + 2 = 3
+        self.assertEqual(response.data["quantity"], expected_new_quantity)
+
+        # 4. Проверка БД
         updated_cart_item = CartItem.objects.get(cart__user=self.cart_user, product_info=self.product_info)
-        self.assertEqual(updated_cart_item.quantity, 4)
+        self.assertEqual(updated_cart_item.quantity, expected_new_quantity)
 
 
     def test_update_cart_item_quantity(self):
@@ -116,29 +121,28 @@ class CartAPIViewTestCase(APITestCase):
         # Добавляем товар в корзину
         cart_item = CartItem.objects.create(
             cart=self.cart_user.cart,
-            product_info=self.product_info,
-            quantity=5
+            product_info=self.product_info, # ограничено до 5 товаров
+            quantity=1
         )
-
         # URL для обновления конкретного элемента
-        cart_item_update_url = reverse("cart_item_api_v1", kwargs={"cart_item_id": cart_item.id})
+        cart_item_update_url = reverse("cart_item_api_v1", kwargs={"id": cart_item.id})
 
         data = {
-            "quantity": 7
+            "quantity": 2
         }
         # Отправляем PUT запрос на обновление данных
         response = self.client.put(cart_item_update_url, data, format="json")
 
         # 1. Проверяем ответ 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # 2. Проверяем, что количество товара увеличилось: 5 (было) + 2 (добавили) = 7
-        self.assertEqual(response.data["quantity"], 7)
+        # 2. Проверяем, что количество товара обновлено до 2-х: 
+        self.assertEqual(response.data["quantity"], 2)
         # 3. Проверяем, что общая сумма увеличилась
-        self.assertEqual(response.data["total_price"], 700.00) # 7 * 100.00 = 700.00
+        self.assertEqual(response.data["total_price"], 200.00) # 2 * 100.00 = 200.00
 
         # 4. Проверяем БД
         cart_item.refresh_from_db()
-        self.assertEqual(cart_item.quantity, 7)
+        self.assertEqual(cart_item.quantity, 2)
 
 
     def test_delete_cart_item(self):
@@ -149,10 +153,8 @@ class CartAPIViewTestCase(APITestCase):
             product_info=self.product_info,
             quantity=3
         )
-        cart_item_id = cart_item.id
-
         # URL для удаления конкретного элемента
-        cart_item_delete_url = reverse("cart_item_api_v1", kwargs={"cart_item_id": cart_item_id})
+        cart_item_delete_url = reverse("cart_detail_api_v1")
 
         # Отправляем DELETE запрос на удаление данных
         response = self.client.delete(cart_item_delete_url)
@@ -160,7 +162,7 @@ class CartAPIViewTestCase(APITestCase):
         # 1. Проверяем ответ 204
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # 2. Проверим, что элемент удален из БД
-        self.assertFalse(CartItem.objects.filter(id=cart_item_id).exists())
+        self.assertFalse(CartItem.objects.filter(id=cart_item.id).exists())
         # 3. Проверим, что в корзине больше нет этого товара
         self.assertEqual(CartItem.objects.filter(
             cart__user=self.cart_user, product_info=self.product_info).count(), 0)

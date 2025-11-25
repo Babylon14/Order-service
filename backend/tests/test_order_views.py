@@ -41,7 +41,7 @@ class OrderAPIViewTestCase(APITestCase):
             phone="+70000000000",
             city="Тест",
             street="Тест",
-            house_number="1"
+            house="1"
         )
         # Подготовим URL-ы
         self.confirm_order_url = reverse("order_confirm_api_v1") # POST /api/v1/confirm-order/
@@ -111,7 +111,7 @@ class OrderAPIViewTestCase(APITestCase):
         created_order = Order.objects.get(user=self.order_user)
 
         # Формируем URL для детального доступа к заказу
-        order_detail_url = reverse("order_detail_api_v1", kwargs={"order_id": created_order.id})
+        order_detail_url = reverse("order_detail_api_v1", kwargs={"id": created_order.id})
 
         # Отправляем GET-запрос на эндпоинт детализации заказа
         response = self.client.get(order_detail_url)

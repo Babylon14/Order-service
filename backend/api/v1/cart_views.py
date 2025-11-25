@@ -112,7 +112,7 @@ class CartItemView(mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.G
         return self.destroy(request, *args, **kwargs)
     
     def perform_update(self, serializer):
-        """Переопределение perform_update, чтобы проверить доступное количество."""
+        """Переопределяем, чтобы проверить доступное количество."""
         instance = serializer.save()
         product_info = instance.product_info
         if instance.quantity > product_info.quantity:
