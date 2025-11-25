@@ -22,23 +22,18 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv
-        uv pip install --system coverage codecov
-        # ИЛИ если вы используете pip и requirements.txt:
-        # pip install -r requirements.txt
-        # pip install coverage # <-- Добавьте эту строку, чтобы явно установить coverage
-        # pip install codecov # <-- И эту, если используете pip
-        
-    - name: Run tests and collect coverage
+        # Устанавливаем ОСНОВНЫЕ зависимости из [project.dependencies]
+        uv sync --locked
+
+    - name: Run tests with coverage
       run: |
-        coverage run manage.py test
+        coverage run --source='backend' manage.py test backend.tests
         coverage xml 
 
-    - name: Upload to Codecov
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false # (опционально) не останавливать CI при ошибке отправки
+        fail_ci_if_error: false # Не останавливать CI при ошибке отправки
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Переменная окружения для токена
