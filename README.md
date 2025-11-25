@@ -1,5 +1,7 @@
 # Order Service - Сервис управления заказами
 
+[![codecov](https://codecov.io/github/Babylon14/Order-service/graph/badge.svg?token=90POA6ZDCW)](https://codecov.io/github/Babylon14/Order-service)
+
 ## Описание проекта
 
 **Order Service** — это REST API сервис на базе Django и Django REST Framework для управления заказами, товарами, корзиной и контактами пользователей. Сервис поддерживает работу с несколькими магазинами (поставщиками), импорт данных из YAML-файлов, аутентификацию через JWT токены и подтверждение email-адресов.
