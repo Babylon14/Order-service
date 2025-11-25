@@ -1,0 +1,31 @@
+name: Django CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13' # Укажите вашу версию
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install coverage  # Убедитесь, что coverage установлен
+        
+    - name: Run tests and collect coverage
+      run: |
+        coverage run manage.py test
+        coverage xml  # Генерирует отчет для Codecov
+
+    - name: Upload to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: true
+        # token: ${{ secrets.CODECOV_TOKEN }} # РАСКОММЕНТИРОВАТЬ ЕСЛИ РЕПОЗИТОРИЙ ПРИВАТНЫЙ
