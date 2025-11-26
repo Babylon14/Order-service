@@ -1,6 +1,5 @@
 name: Django CI
-env:  
-    SECRET_KEY: "any_dummy_secret_key_for_tests"
+
 on:
   push:
     branches: [ main, dev ]
@@ -22,14 +21,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv
-        # Устанавливаем ОСНОВНЫЕ зависимости из [project.dependencies]
-        uv sync --locked
+        uv sync --locked # Устанавливает зависимости
+        # Запускаем в той же оболочке, где PATH уже обновлён uv
+        coverage run --source='backend' manage.py test backend.tests
+        coverage xml
+      env:
+        SECRET_KEY: any_dummy_secret_key_for_tests
         
-        # Использование исполняемого файла из .venv
-        ./.venv/bin/python ./.venv/bin/coverage run --source='backend' manage.py test backend.tests
-        ./.venv/bin/coverage xml
-        # coverage run --source='backend' manage.py test backend.tests
-        # coverage xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
