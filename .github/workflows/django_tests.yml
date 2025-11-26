@@ -21,11 +21,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv
-        # Устанавливаем ОСНОВНЫЕ зависимости
-        uv sync --locked
-        # Устанавливаем DEV зависимости
-        uv sync --group dev --locked 
-        # Запускаем тесты и coverage в той же оболочке, где PATH обновлён uv
+        uv sync --locked --group dev
         coverage run --source='backend' manage.py test backend.tests
         coverage xml
       env:
