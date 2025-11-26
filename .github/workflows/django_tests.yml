@@ -1,5 +1,4 @@
 name: Django CI
-
 on:
   push:
     branches: [ main, dev ]
@@ -29,7 +28,6 @@ jobs:
         uv run coverage xml
       env:
         SECRET_KEY: any_dummy_secret_key_for_tests
-        
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
