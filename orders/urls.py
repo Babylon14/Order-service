@@ -19,12 +19,19 @@ from django.urls import path, include
 import debug_toolbar
 from django.conf import settings
 from backend.api import views
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 urlpatterns = [
     path("", views.index, name="index"),
     path("categories/", views.categories, name="categories"),
     path("admin/", admin.site.urls),
+
+    # URL-маршруты для схемы и отображения
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/schema/swagger/", SpectacularSwaggerView.as_view(url_name="schema")),
+
+    # URL-маршруты для API
     path("api/", include("backend.api.urls")),
 ]
 

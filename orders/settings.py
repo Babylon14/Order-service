@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework",
     "django_filters",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -139,6 +140,19 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",               # Добавляем возможность поиска
         "rest_framework.filters.OrderingFilter",             # Добавляем возможность сортировки
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Сервис заказов API",
+    "DESCRIPTION": "это REST API сервис на базе Django и Django REST Framework"
+                    "для управления заказами, товарами, корзиной и контактами пользователей."
+                    "Сервис поддерживает работу с несколькими магазинами (поставщиками), "
+                    "импорт данных из YAML-файлов, аутентификацию через JWT токены"
+                    "и подтверждение email-адресов.",
+    "VERSION": '1.0.0',
+    "SERVE_INCLUDE_SCHEMA": False, # Включает генерацию схемы по маршруту /api/schema/
+    # OTHER SETTINGS
 }
 
 # Настройки JWT
