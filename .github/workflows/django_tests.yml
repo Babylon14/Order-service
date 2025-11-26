@@ -26,7 +26,7 @@ jobs:
         uv sync --locked
         
         # Использование исполняемого файла из .venv
-        ./.venv/bin/coverage run --source='backend' ./.venv/bin/manage.py test backend.tests
+        ./.venv/bin/python ./.venv/bin/coverage run --source='backend' manage.py test backend.tests
         ./.venv/bin/coverage xml
         # coverage run --source='backend' manage.py test backend.tests
         # coverage xml
