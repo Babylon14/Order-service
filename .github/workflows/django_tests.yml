@@ -24,8 +24,12 @@ jobs:
         pip install uv
         # Устанавливаем ОСНОВНЫЕ зависимости из [project.dependencies]
         uv sync --locked
-        coverage run --source='backend' manage.py test backend.tests
-        coverage xml
+        
+        # Использование исполняемого файла из .venv
+        ./.venv/bin/coverage run --source='backend' ./.venv/bin/manage.py test backend.tests
+        ./.venv/bin/coverage xml
+        # coverage run --source='backend' manage.py test backend.tests
+        # coverage xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
