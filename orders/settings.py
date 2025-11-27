@@ -141,6 +141,14 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",             # Добавляем возможность сортировки
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle", # Добавляем анонимные лимиты
+        "rest_framework.throttling.UserRateThrottle", # Добавляем лимиты для пользователей
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/min",
+        "user": "100/min",
+    },
 }
 
 SPECTACULAR_SETTINGS = {
