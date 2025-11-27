@@ -15,6 +15,7 @@ TEST_CACHE_TIMEOUT = {
     }
 }
 
+@override_settings(CACHES=TEST_CACHE_TIMEOUT)  # Изолируем кэш
 class ThrottlingAPIViewTestCase(APITestCase):
     """Тестирование APIView с ограничением на количество запросов."""
     def setUp(self):
@@ -35,8 +36,8 @@ class ThrottlingAPIViewTestCase(APITestCase):
             "email": "nonexistent@example.com",
             "password": "invalid_pass"
         }
-        num_requests = 11 # Пробую 11 запросов (лимит 10/min)
 
+        num_requests = 11 # Пробую 11 запросов (лимит 10/min)
         response_list = []
         for i in range(num_requests):
             # Отправляем POST запрос на эндпоинт входа
@@ -56,10 +57,37 @@ class ThrottlingAPIViewTestCase(APITestCase):
                 self.assertNotEqual(
                     response_list[i],
                     status.HTTP_429_TOO_MANY_REQUESTS,
-                    f"Ожидался статус НЕ 429 для {i+1}-го запроса, но получен {response_list[i]}. ",
+                    f"Ожидался статус НЕ 429 для {i+1}-го запроса, получен {response_list[i]}. ",
                     f"Ответы: {response_list}"
             )
 
-                
+    def test_authenticated_user_global_throttling(self):
+        """Тест: троттлинг для АУТЕНТИФИЦИРОВАННОГО пользователя"""
+        self.client.force_authenticate(user=self.throttle_user) # Аутентификация пользователя
 
-        
+        # Формируем URL для получения списка контактов (требует аутентификацию)
+        contact_list_url = reverse("contact_list_api_v1")
+
+        num_requests = 101 # Пробую 101 запрос (лимит 100/min)
+        response_list = []
+        for i in range(num_requests):
+            response = self.client.get(contact_list_url) # Отправляем GET-запрос на эндпоинт списка контактов
+            response_list.append(response.status_code)
+            print(f"Запрос аутентифицированного пользователя #{i + 1} - статус: {response.status_code}") # Отладка
+
+            # 1. Проверка, что 101-й запрос превысит лимит (429)
+            self.assertEqual( 
+                response_list[100], # Ожидаем статус 429 (101-й запрос, перебор)
+                status.HTTP_429_TOO_MANY_REQUESTS,
+                f"Ожидался статус 429 для 101-го запроса, но получен {response_list[100]}.",
+                f"Ответы: {response_list}"
+            )
+            # 2. Проверка, что первые 100 запросов *НЕ* 429
+            for i in range(100): # Индексы с 0 по 99
+                self.assertNotEqual(
+                    response_list[i],
+                    status.HTTP_429_TOO_MANY_REQUESTS,
+                    f"Ожидался статус НЕ 429 для {i+1}-го запроса, получен {response_list[i]}. ",
+                    f"Ответы: {response_list}"
+            )
+                
