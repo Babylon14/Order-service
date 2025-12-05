@@ -33,6 +33,9 @@ urlpatterns = [
 
     # URL-маршруты для API
     path("api/", include("backend.api.urls")),
+
+    # URL-маршрут для социальной авторизации
+    path("auth/", include("social_django.urls", namespace="social")),
 ]
 
 handler404 = "backend.api.views.page_not_found"
