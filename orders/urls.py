@@ -25,6 +25,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = [
     path("", views.index, name="index"),
     path("categories/", views.categories, name="categories"),
+
+    # URL-маршрут для интерфейса админки
+    path("jet/", include("jet.urls", "jet")),
     path("admin/", admin.site.urls),
 
     # URL-маршруты для схемы и отображения
@@ -33,6 +36,9 @@ urlpatterns = [
 
     # URL-маршруты для API
     path("api/", include("backend.api.urls")),
+
+    # URL-маршрут для социальной авторизации
+    path("auth/", include("social_django.urls", namespace="social")),
 ]
 
 handler404 = "backend.api.views.page_not_found"

@@ -1,5 +1,6 @@
 from django.urls import path
-from . import api_views, auth_views, product_views, cart_views, contact_views, order_views
+from . import (api_views, auth_views, product_views, cart_views, contact_views,
+                order_views, social_auth_views, current_user_views)
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
@@ -45,6 +46,9 @@ urlpatterns = [
     path("send-contact-confirmation/", contact_views.SendConfirmationEmailView.as_view(), name="send_contact_confirmation_api_v1"),
     path("confirm-contact/<uuid:token>/", contact_views.ConfirmContactView.as_view(), name="confirm_contact_api_v1"),
 
+    # URL для авторизации через социальные сети
+    path("auth/complete-token/", social_auth_views.SocialAuthTokenRedirectView.as_view(), name="social_complete_token_api_v1"),
+    path("users/me/", current_user_views.CurrentUserView.as_view(), name='current-user'),
 ]
 
 

@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-kcpk8wo=31u50_8d+)ovs##q@=vqjs1btnbafeuxygy)qyu9t%'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -21,12 +21,16 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # Application definition
 INSTALLED_APPS = [
+    "jet",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django.contrib.sites",
+    "social_django",
+    "corsheaders",
     "debug_toolbar",
     "backend.apps.BackendConfig",
     "rest_framework_simplejwt",
@@ -34,8 +38,11 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
 ]
+SITE_ID = 1 # для django.contrib.sites
+
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -214,3 +221,58 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Europe/Moscow"
 
+
+# --- Добавляем CLient ID и Secrets конкретных провайдеров ---
+# OAuth2 - Google
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
+
+# OAuth2 - GitHub
+SOCIAL_AUTH_GITHUB_KEY = os.getenv("SOCIAL_AUTH_GITHUB_OAUTH2_KEY")
+SOCIAL_AUTH_GITHUB_SECRET = os.getenv("SOCIAL_AUTH_GITHUB_OAUTH2_SECRET")
+
+
+# --- Добавляем аутентификацию через социальные сети ---
+AUTHENTICATION_BACKENDS = (
+    # Дефолтная аутентификация (должна быть первой)
+    'django.contrib.auth.backends.ModelBackend',
+    # Добавляем аутентификацию через Google
+    'social_core.backends.google.GoogleOAuth2',
+    # Добавляем аутентификацию через GitHub
+    'social_core.backends.github.GithubOAuth2',
+)
+
+SOCIAL_AUTH_PIPELINE = (
+    "social_core.pipeline.social_auth.social_details",
+    "social_core.pipeline.social_auth.social_uid",
+    "social_core.pipeline.social_auth.auth_allowed",
+    "social_core.pipeline.social_auth.social_user",
+    "social_core.pipeline.user.get_username",
+    "social_core.pipeline.user.create_user",
+    "social_core.pipeline.user.user_details",
+    "social_core.pipeline.social_auth.associate_user",
+    "social_core.pipeline.social_auth.load_extra_data",
+
+    # Кастомный пайплайн для генерации токена:
+    "backend.auth_pipeline.generate_jwt_token",   
+)
+
+# URL фронтенда, на который нужно перенаправить после получения токенов
+FRONTEND_SOCIAL_LOGIN_SUCCESS_URL = "http://127.0.0.1:3000/social-login-success"
+# Перенаправляем на наше кастомное View для обработки токена
+LOGIN_REDIRECT_URL = "/auth/complete-token/"
+
+# URL, на который Social Auth делает *свой* редирект *после* завершения аутентификации
+# Этот URL должен указывать на твой кастомный View
+# SOCIAL_AUTH_LOGIN_REDIRECT_URL = "http://127.0.0.1:3000/social-login-success"
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = "/api/v1/auth/complete-token/"
+
+# Разрешенные домены (Origin). В продакшене укажите домен вашего SPA!
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    # "https://yourdomain.com",  # для продакшена
+]
+
+# Разрешаем кросс-доменные запросы
+CORS_ALLOW_CREDENTIALS = True
