@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "drf_spectacular",
+    "imagekit",
 ]
 SITE_ID = 1 # для django.contrib.sites
 
@@ -74,6 +75,7 @@ WSGI_APPLICATION = 'orders.wsgi.application'
 
 # Если запущены тесты — используем SQLite
 if "test" in sys.argv or os.environ.get("CI") == "true":
+    print("!!! ИСПОЛЬЗУЕТСЯ SQLITE !!!")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -81,6 +83,7 @@ if "test" in sys.argv or os.environ.get("CI") == "true":
         }
     }
 else:
+    print("!!! ИСПОЛЬЗУЕТСЯ POSTGRESQL !!!")
     # В остальных случаях используем PostgreSQL
     DATABASES = {
         'default': {
@@ -276,3 +279,18 @@ CORS_ALLOWED_ORIGINS = [
 
 # Разрешаем кросс-доменные запросы
 CORS_ALLOW_CREDENTIALS = True
+
+
+# медиа-файлы (куда будут загружаться изображения пользователями)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Отключаем автоматическую генерацию изображений ImageKit при сохранении модели
+IMAGEKIT_CACHEFILE_NAMER = "imagekit.cachefiles.namers.source_name_hashed_dot"
+IMAGEKIT_DEFAULT_CACHEFILE_BACKEND = "imagekit.cachefiles.backends.Secure"
+IMAGEKIT_SPEC_CACHEFILE_STORAGE = "imagekit.cachefiles.storage.Optimistic"
+
+# ВАЖНО!!! Это гарантирует, что миниатюры не будут генерироваться синхронно при сохранении.
+IMAGEKIT_PROCESS_DIRTY_FIELDS = False
+IMAGEKIT_PROCESSOR_CACHE = "default"
+

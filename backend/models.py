@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils import timezone
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
 import uuid
 
 
@@ -40,6 +42,21 @@ class User(AbstractUser):
     ]
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="client")
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
+
+    # Поле, которое будет содержать оригинальную картинку
+    original_avatar = models.ImageField(
+        upload_to="avatars/originals", null=True, blank=True, verbose_name="Аватар"
+    )
+    # Поле, которое будет содержать картинку 150x150
+    avatar_thumbnail = ProcessedImageField(
+        upload_to="avatars/thumbnails",
+        processors=[ResizeToFill(150, 150)], # Обрезаем картинку до размера 150x150
+        format="JPEG",
+        options={"quality": 80},
+        null=True,
+        blank=True,
+        verbose_name="Аватар-миниатюра",
+    )
 
     USERNAME_FIELD = "email"  # Используем email для аутентификации
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]  # Поля, обязательные при создании суперпользователя
@@ -106,10 +123,33 @@ class Category(models.Model):
 
 class Product(models.Model):
     """Модель Товара"""
-
     name = models.CharField(max_length=255, verbose_name="Название товара")
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="products", verbose_name="Категория")
+    # Поле, которое будет содержать оригинальную картинку
+    original_image = models.ImageField(
+        upload_to="products/originals", null=True, blank=True, verbose_name="Изображение товара"
+    )
+    # Миниатюра для списка товаров
+    thumb = ProcessedImageField(
+        upload_to="products/thumbs",
+        processors=[ResizeToFill(300, 300)], # Обрезаем картинку до размера 300x300
+        format="JPEG",
+        options={"quality": 70},
+        null=True,
+        blank=True,
+        verbose_name="Миниатюра товара",
+    )
+    # Изображение для детальной страницы
+    detail_view = ProcessedImageField(
+        upload_to="products/details",
+        processors=[ResizeToFill(800, 600)], # Обрезаем картинку до размера 800x600
+        format="JPEG",
+        options={"quality": 85},
+        null=True,
+        blank=True,
+        verbose_name="Детальная картинка товара",
+    )
 
     class Meta:
         verbose_name = "Товар"

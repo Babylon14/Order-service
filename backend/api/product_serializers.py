@@ -66,3 +66,13 @@ class ProductInfoListSerializer(serializers.ModelSerializer):
             "quantity", # Количество товара
         ]
 
+
+# --- СЕРИАЛИЗАТОР ДЛЯ ЗАГРУЗКИ ИЗОБРАЖЕНИЙ ПРОДУКТОВ ---
+class ProductImageUploadSerializer(serializers.ModelSerializer):
+    """Сериализатор только для загрузки изображения товара."""
+    
+    class Meta:
+        model = Product
+        fields = ("original_image",)
+        read_only_fields = ("thumb", "detail_view")
+

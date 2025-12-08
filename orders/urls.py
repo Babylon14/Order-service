@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
 import debug_toolbar
 from django.conf import settings
 from backend.api import views
@@ -44,8 +45,14 @@ urlpatterns = [
 handler404 = "backend.api.views.page_not_found"
 handler500 = "backend.api.views.server_error"
 
+# ===================================================
+# БЛОК ДЛЯ РЕЖИМА РАЗРАБОТКИ (settings.DEBUG = True)
+# ===================================================
 if settings.DEBUG:
+    # 1. Debug Toolbar (должен быть в начале списка)
     urlpatterns = [
         path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns
+    # 2. Обслуживание Медиа-файлов (загруженных изображений)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
