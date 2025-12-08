@@ -1,10 +1,11 @@
 from rest_framework import generics
 from rest_framework import filters
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from backend.models import Product, ProductInfo
-from backend.api.product_serializers import ProductInfoListSerializer, ProductListSerializer
+from backend.api.product_serializers import (ProductInfoListSerializer, ProductListSerializer,
+                                            ProductImageUploadSerializer)
 from backend.api.filters import ProductInfoFilter
 
 
@@ -63,4 +64,14 @@ class ProductDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]  # Доступно всем пользователям
     lookup_field = "id"  # Поле, по которому ищем (обычно id)
 
+
+class ProductImageUploadView(generics.UpdateAPIView):
+    """
+    API View для обновления (загрузки) изображения конкретного товара по его ID.
+    PUT /api/v1/products/<int:pk>/image-upload/
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductImageUploadSerializer
+    permission_classes = [IsAuthenticated]  # Доступно только авторизованным пользователям
+    lookup_field = "id"  # Поле, по которому ищем (обычно id)
 

@@ -2,6 +2,9 @@
 from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
+from django.apps import apps
+from imagekit import registry
+from imagekit.models import ProcessedImageField
 from .models import Shop
 from backend.utils import load_shop_data_from_yaml
 
@@ -133,4 +136,28 @@ def import_shop_data_task(shop_id: int, yaml_file_path: str = None) -> dict:
 def import_all_shops_data_task() -> dict:
     """Асинхронная Celery-задача для импорта данных *ВСЕХ* активных магазинов."""
     return import_all_shops_data_logic()
+
+
+# --- CELERY ЗАДАЧА для генерации миниатюр ---
+@shared_task
+def generate_thumbnails(app_label: str, model_name: str, pk: int, field_name: str) -> None:
+    """
+    Асинхронно генерирует миниатюры для указанного ProcessedImageField.
+    """
+    try:
+        Model = apps.get_model(app_label, model_name) # Получаем модель
+        instance = Model.objects.get(pk=pk) # Получаем экземпляр модели
+        field_object = instance._meta.get_field(field_name) # Получаем объект поля ProcessedImageField из модели
+
+        # Проверяем, является ли поле экземпляром ProcessedImageField
+        if not isinstance(field_object, ProcessedImageField):
+            print(f"Поле {field_name} не является экземпляром ProcessedImageField.")
+            return
+        # Инициируем генерацию миниатюр для этого поля
+        cachefile_setter = registry.get(field_object.spec.name)
+        # Получаем файл миниатюры и вызываем его для каждого ProcessedImageField
+        cachefile_setter.generate(instance)
+        print(f"Успешно сгенерированы миниатюры для {model_name} (ID: {pk}), поле: {field_name}")
+    except Exception as e:
+        print(f"Ошибка при генерации миниатюры: {e}")
 

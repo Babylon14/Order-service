@@ -1,6 +1,6 @@
 from django.urls import path
 from . import (api_views, auth_views, product_views, cart_views, contact_views,
-                order_views, social_auth_views, current_user_views)
+                order_views, social_auth_views, current_user_views, profile_views)
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
@@ -49,6 +49,13 @@ urlpatterns = [
     # URL для авторизации через социальные сети
     path("auth/complete-token/", social_auth_views.SocialAuthTokenRedirectView.as_view(), name="social_complete_token_api_v1"),
     path("users/me/", current_user_views.CurrentUserView.as_view(), name='current-user'),
+
+    # URL для получения, обновления профиля
+    path("profile/", profile_views.UserProfileUpdateAPIView.as_view(), name="profile_api_v1"),
+
+    # URL для загрузки/обновления изображения товара
+    path("products/<int:id>/image-upload/", product_views.ProductImageUploadView.as_view(), name="product_image_upload_api_v1"),
+
 ]
 
 

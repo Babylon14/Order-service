@@ -1,3 +1,4 @@
+"""Обработка данных магазинов из YAML-файлов."""
 import yaml
 from django.db import transaction
 from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
