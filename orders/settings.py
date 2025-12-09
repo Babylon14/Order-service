@@ -217,13 +217,31 @@ EMAIL_USE_SSL = False     # MailHog по умолчанию не использ�
 DEFAULT_FROM_EMAIL = "webmaster@localhost" 
 
 # Настройка Celery
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0" # Используем Redis в качестве брокера сообщений
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0" # Используем Redis в качестве брокера результатов
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") # Используем Redis в качестве брокера сообщений
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND") # Используем Redis в качестве брокера результатов
 
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Europe/Moscow"
+
+# --- Настройка Redis ---
+REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
+
+CACHES = {
+    "default": { # Кэш по умолчанию (например, для session)
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1", # используем бд Redis 1 в качестве кэша (база 0 занята Celery)
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": REDIS_PASSWORD,
+            # Опция для обработки кэширования в транзакциях
+            "IGNORE_EXCEPTIONS": True,
+        },
+        }
+}
 
 # --- Добавляем CLient ID и Secrets конкретных провайдеров ---
 # OAuth2 - Google
