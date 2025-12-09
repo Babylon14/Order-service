@@ -1,15 +1,19 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage'; // Импортируем созданный компонент
-import SocialLoginSuccess from './pages/socialLoginSuccess.js'; // Компонент для обработки токенов (из прошлого шага)
+// Важно: Меняем BrowserRouter на Router
+import { Router, Routes, Route } from 'react-router-dom'; 
+import LoginPage from './pages/LoginPage'; 
+import SocialLoginSuccess from './pages/socialLoginSuccess.js'; 
 import Dashboard from './pages/Dashboard';
 
-function App() {
+// Функция App теперь принимает пропс 'history'
+// и использует его для компонента Router
+function App({ history }) { 
   return (
-    <Router>
+    // Используем компонент Router (импортированный из react-router-dom)
+    // и передаем ему history, полученный из index.js
+    <Router navigator={history} location={history.location}> 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        {/* URL для обработки токенов, должен совпадать с SOCIAL_AUTH_LOGIN_REDIRECT_URL */}
         <Route path="/social-login-success" element={<SocialLoginSuccess />} /> 
         <Route path="/" element={<Dashboard />} />
       </Routes>
