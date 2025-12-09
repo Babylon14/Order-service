@@ -1,15 +1,17 @@
 from pathlib import Path
-from dotenv import load_dotenv
 from datetime import timedelta
-import os
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from dotenv import load_dotenv
 import sys
+import os
 
 
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -214,7 +216,6 @@ EMAIL_USE_TLS = False     # MailHog по умолчанию не использ�
 EMAIL_USE_SSL = False     # MailHog по умолчанию не использует TLS/SSL
 DEFAULT_FROM_EMAIL = "webmaster@localhost" 
 
-
 # Настройка Celery
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0" # Используем Redis в качестве брокера сообщений
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0" # Используем Redis в качестве брокера результатов
@@ -224,7 +225,6 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Europe/Moscow"
 
-
 # --- Добавляем CLient ID и Secrets конкретных провайдеров ---
 # OAuth2 - Google
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
@@ -233,7 +233,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
 # OAuth2 - GitHub
 SOCIAL_AUTH_GITHUB_KEY = os.getenv("SOCIAL_AUTH_GITHUB_OAUTH2_KEY")
 SOCIAL_AUTH_GITHUB_SECRET = os.getenv("SOCIAL_AUTH_GITHUB_OAUTH2_SECRET")
-
 
 # --- Добавляем аутентификацию через социальные сети ---
 AUTHENTICATION_BACKENDS = (
@@ -280,7 +279,6 @@ CORS_ALLOWED_ORIGINS = [
 # Разрешаем кросс-доменные запросы
 CORS_ALLOW_CREDENTIALS = True
 
-
 # медиа-файлы (куда будут загружаться изображения пользователями)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -293,4 +291,21 @@ IMAGEKIT_SPEC_CACHEFILE_STORAGE = "imagekit.cachefiles.storage.Optimistic"
 # ВАЖНО!!! Это гарантирует, что миниатюры не будут генерироваться синхронно при сохранении.
 IMAGEKIT_PROCESS_DIRTY_FIELDS = False
 IMAGEKIT_PROCESSOR_CACHE = "default"
+
+SENTRY_DSN = os.getenv("SENTRY_DSN_BACKEND") # Указываем SENTRY_DSN для Django
+
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(), # Включаем интеграцию Django
+            CeleryIntegration(), # Включаем интеграцию Celery
+        ],
+        # Настройка трассировки (APM)
+        traces_sample_rate=1.0, # Записывать 100% транзакций (можно уменьшить в продакшене)
+        # Дополнительные опции
+        send_default_pii=True, # Отправлять личные данные (IP, заголовок, email аутентифицированного пользователя)
+        environment="development", # Определяем окружение ('production' или 'staging')
+    )
+
 

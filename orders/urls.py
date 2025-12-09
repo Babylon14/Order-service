@@ -23,6 +23,10 @@ from backend.api import views
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
+    return division_by_zero
+
 urlpatterns = [
     path("", views.index, name="index"),
     path("categories/", views.categories, name="categories"),
@@ -40,6 +44,9 @@ urlpatterns = [
 
     # URL-маршрут для социальной авторизации
     path("auth/", include("social_django.urls", namespace="social")),
+    
+    # URL-маршрут для тестовой обработки ошибок
+    path("sentry-debug/", trigger_error),
 ]
 
 handler404 = "backend.api.views.page_not_found"
