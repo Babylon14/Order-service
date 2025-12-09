@@ -1,12 +1,16 @@
-from rest_framework import generics
-from rest_framework import filters
+from rest_framework import generics, filters
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core import cache
+import json
 
 from backend.models import Product, ProductInfo
 from backend.api.product_serializers import (ProductInfoListSerializer, ProductListSerializer,
                                             ProductImageUploadSerializer)
 from backend.api.filters import ProductInfoFilter
+
+# Время жизни кэша (Time-To-Live). Например, 10 минут.
+CACHE_TTL = 60 * 10
 
 
 class ProductInfoListView(generics.ListAPIView):
@@ -27,7 +31,6 @@ class ProductInfoListView(generics.ListAPIView):
         "product_parameters__value", # Поиск по значению параметра
         "product_parameters__parameter__name", # Поиск по названию параметра
     ]
-
     filterset_class = ProductInfoFilter  # Используем класс фильтров
 
     # Поля для сортировки
@@ -50,6 +53,35 @@ class ProductInfoListView(generics.ListAPIView):
         ).prefetch_related(
             "product_parameters__parameter" # Подгружаем параметры и их имена
         )
+    
+    def list(self, request, *args, **kwargs):
+        """Формирование уникального ключа кэша"""
+
+        # Получаем параметры GET-запроса (словарь с фильтрами, поиском и сортировкой)
+        query_params = dict(request.query_params.items())
+
+        # Сериализуем параметры в строку, чтобы получить уникальный и стабильный ключ.
+        # sort_keys=True гарантирует, что порядок параметров не меняет ключ.
+        query_string = json.dumps(query_params, sort_keys=True)
+
+        # Формируем окончательный ключ кэша
+        cache_key = f"product_list:{query_string}"
+    
+        # Пытаемся получить закэшированный ответ из Redis
+        cached_response = cache.get(cache_key)
+        if cached_response:
+            print("--- CACHE HIT: Ответ взят из Redis ---")
+            return cached_response # Возвращаем кэшированный ответ
+        
+        # Если кэш не нашел ответ, выполняем стандартную логику DRF
+        print("--- CACHE MISS: Запрос к БД ---")
+        response = super().list(request, *args, **kwargs)
+
+        # Сохраняем финальный объект Response (или его данные) в Redis
+        cache.set(cache_key, response, timeout=CACHE_TTL)
+
+        return response
+
 
 class ProductDetailView(generics.RetrieveAPIView):
     """
