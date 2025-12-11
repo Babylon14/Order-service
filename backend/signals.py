@@ -2,7 +2,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from backend.models import Product, ProductInfo
-from backend.tasks import generate_thumbnails, clear_product_list_cache
+from backend.tasks import generate_thumbnails, clear_product_list_cache_task
 from imagekit.models import ProcessedImageField
 
 
@@ -33,5 +33,5 @@ def invalidate_product_list_cache(sender, instance, **kwargs):
     Запускает таску Celery для очистки кэша при сохранении/обновлении ProductInfo.
     """
     # Запускаем таску асинхронно
-    clear_product_list_cache.delay(instance.id)
+    clear_product_list_cache_task.delay(instance.id)
 
