@@ -1,12 +1,20 @@
-from rest_framework import generics
-from rest_framework import filters
+from rest_framework import generics, filters
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response as DRFResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.cache import cache
+import json
 
 from backend.models import Product, ProductInfo
 from backend.api.product_serializers import (ProductInfoListSerializer, ProductListSerializer,
                                             ProductImageUploadSerializer)
 from backend.api.filters import ProductInfoFilter
+from backend.redis_client import get_cache, set_cache
+
+
+# Время жизни кэша (Time-To-Live). Например, 10 минут.
+CACHE_TTL = 60 * 10
 
 
 class ProductInfoListView(generics.ListAPIView):
@@ -27,7 +35,6 @@ class ProductInfoListView(generics.ListAPIView):
         "product_parameters__value", # Поиск по значению параметра
         "product_parameters__parameter__name", # Поиск по названию параметра
     ]
-
     filterset_class = ProductInfoFilter  # Используем класс фильтров
 
     # Поля для сортировки
@@ -50,6 +57,90 @@ class ProductInfoListView(generics.ListAPIView):
         ).prefetch_related(
             "product_parameters__parameter" # Подгружаем параметры и их имена
         )
+    
+    def list(self, request, *args, **kwargs):
+        """Формирование уникального ключа кэша"""
+        # 1. Формирование ключа кэша
+        query_params = dict(request.query_params.items())
+        query_string = json.dumps(query_params, sort_keys=True)
+        cache_key = f"product_list:{query_string}"
+
+        # 2. Попытка получения данных из Redis с помощью нашей функции
+        cached_data = get_cache(cache_key)
+
+        if cached_data:
+            print("--- CACHE HIT (redis-py): Ответ взят из Redis ---")
+            # Возвращаем данные, которые уже являются словарем/списком Python
+            return DRFResponse(
+                data=cached_data,
+                status=200,
+                content_type="application/json"
+            )
+        # 3. Если кэша нет
+        print("--- CACHE MISS: Запрос к БД ---")
+        response = super().list(request, *args, **kwargs)
+
+        # Если данные успешно получены, сохраняем их
+        if response.status_code == 200:
+            set_cache(cache_key, response.data, timeout=CACHE_TTL)
+            print("--- INFO: Данные сохранены в Redis через redis-py ---")
+
+        return response
+            
+
+
+
+
+        # # 3. Попытка получения данных из Redis с помощью Django-кэша
+        # cached_data = cache.get(cache_key)
+
+        # if cached_data:
+        #     print("--- CACHE HIT: Ответ взят из Django-кэша ---")
+        #     return DRFResponse(cached_data, status=200)
+
+        # try:
+        #     # Пытаемся сохранить тестовый ключ в базе №1 (наш кэш)
+        #     # Если пароль или хост неверны, здесь произойдет сбой (если IGNORE_EXCEPTIONS=False)
+        #     # Или вернется False/None (если IGNORE_EXCEPTIONS=True)
+        #     success = cache.set('CRITICAL_TEST_KEY_DB_1', 'CONNECTION_OK', timeout=10) 
+        #     print(f"DEBUG_REDIS: cache.set() вернул: {success}")
+        # except Exception as e:
+        #     # Если ошибка все же просочилась, это критично
+        #     print(f"DEBUG_REDIS: КРИТИЧЕСКАЯ ОШИБКА: {e}")
+
+
+        # # 2. Попытка получения закэшированного ответа из Redis
+        # cached_content = cache.get(cache_key)
+
+        # if cached_content:
+        #     print("--- CACHE HIT: Ответ взят из Redis ---")
+        #     return DRFResponse(
+        #         data=json.loads(cached_content), # Десериализуем JSON-строку обратно в Python-объект
+        #         status=200,
+        #         content_type="application/json"
+        #     )
+        # # Если кэш не нашел ответ, выполняем стандартную логику DRF
+        # print("--- CACHE MISS: Запрос к БД ---")
+        # # Получаем стандартный ответ от DRF
+        # response = super().list(request, *args, **kwargs)
+
+        # # Устанавливаем JSONRenderer
+        # response.accepted_renderer = JSONRenderer()
+        # # Устанавливаем медиа-тип
+        # response.accepted_media_type = "application/json"
+        # # Устанавливаем КОНТЕКСТ РЕНДЕРЕРА
+        # response.renderer_context = {
+        #     "view": self,          # Ссылка на текущее представление
+        #     "request": request,    # Объект запроса
+        #     "response": response,  # Сам объект ответа
+        # }
+        # # Принудительно рендерим ответ
+        # response.render()
+        # Сохраняем финальный объект Response (или его данные) в Redis
+        cache.set(cache_key, response.content, timeout=CACHE_TTL)
+
+        return response
+
 
 class ProductDetailView(generics.RetrieveAPIView):
     """
