@@ -1,9 +1,10 @@
 """Здесь будут сигналы Django"""
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from backend.models import Product, ProductInfo
-from backend.tasks import generate_thumbnails, clear_product_list_cache_task
+from backend.tasks import generate_thumbnails
 from imagekit.models import ProcessedImageField
+from backend.redis_client import clear_product_list_cache
 
 
 @receiver(post_save, sender=Product)
@@ -28,10 +29,34 @@ def process_product_image_async(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=ProductInfo)
-def invalidate_product_list_cache(sender, instance, **kwargs):
+def invalidate_product_list_cache_on_save(sender, instance, created, **kwargs):
     """
-    Запускает таску Celery для очистки кэша при сохранении/обновлении ProductInfo.
+    Очищает кэш списка продуктов после сохранения (создания или обновления) 
+    объекта ProductInfo.
     """
-    # Запускаем таску асинхронно
-    clear_product_list_cache_task.delay(instance.id)
+    print("--- SIGNAL: ProductInfo.post_save сработал. Очистка кэша... ---")
+    
+    # Прямой вызов функции очистки Redis
+    deleted_count = clear_product_list_cache()
+    
+    if deleted_count > 0:
+        print(f"--- INFO: Кэш списка продуктов очищен. Удалено ключей: {deleted_count} ---")
+    else:
+        print("--- INFO: Кэш списка продуктов очищен (ключи не найдены). ---")
+
+
+@receiver(post_delete, sender=ProductInfo)
+def invalidate_product_list_cache_on_delete(sender, instance, **kwargs):
+    """
+    Очищает кэш списка продуктов после удаления объекта ProductInfo.
+    """
+    print("--- SIGNAL: ProductInfo.post_delete сработал. Очистка кэша... ---")
+    
+    # Прямой вызов функции очистки Redis
+    deleted_count = clear_product_list_cache()
+    
+    if deleted_count > 0:
+        print(f"--- INFO: Кэш списка продуктов очищен. Удалено ключей: {deleted_count} ---")
+    else:
+        print("--- INFO: Кэш списка продуктов очищен (ключи не найдены). ---")
 
