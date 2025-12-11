@@ -1,10 +1,16 @@
-# Order Service - Сервис управления заказами
+# Order Service — управление заказами, импортом и каталогом
 
 [![codecov](https://codecov.io/github/Babylon14/Order-service/graph/badge.svg?token=90POA6ZDCW)](https://codecov.io/github/Babylon14/Order-service)
 
 ## Описание проекта
 
-**Order Service** — это REST API сервис на базе Django и Django REST Framework для управления заказами, товарами, корзиной и контактами пользователей. Сервис поддерживает работу с несколькими магазинами (поставщиками), импорт данных из YAML-файлов, аутентификацию через JWT токены и подтверждение email-адресов.
+## Что появилось недавно
+- Асинхронный импорт YAML через Celery (`start-import-*`, `import-status`) и отдельная задача очистки кэша.
+- Redis-кэш для списка товаров с автоматической инвалидацией сигналами и Celery-задачей.
+- Загрузка изображений товаров и аватаров с генерацией миниатюр (ImageKit) в фоне.
+- Социальная авторизация Google/GitHub с выдачей JWT через кастомный pipeline и редиректом на фронтенд.
+- Интеграция Sentry и на бэкенде (Django + Celery), и на фронтенде (React Router, APM, ErrorBoundary).
+- DRF throttling по умолчанию (10/min анонимно, 100/min авторизовано) и CORS для SPA на `127.0.0.1:3000`.
 
 ### Основные возможности
 
@@ -33,658 +39,148 @@
 
 ## Структура проекта
 
+## Структура
 ```
 order-service/
-├── backend/                    # Основное приложение Django
-│   ├── api/                   # API endpoints
-│   │   ├── v1/               # API версии 1
-│   │   │   ├── auth_views.py      # Аутентификация
-│   │   │   ├── product_views.py   # Товары
-│   │   │   ├── cart_views.py      # Корзина
-│   │   │   ├── order_views.py     # Заказы
-│   │   │   ├── contact_views.py   # Контакты
-│   │   │   └── views.py           # Импорт данных
-│   │   ├── urls.py
-│   │   └── *_serializers.py  # Сериализаторы
-│   ├── management/
-│   │   └── commands/
-│   │       └── create_initial_shops.py  # Команда создания магазинов
-│   ├── migrations/            # Миграции базы данных
-│   ├── models.py             # Модели данных
-│   └── utils.py              # Утилиты (импорт из YAML)
-├── data/                     # YAML-файлы с данными магазинов
-│   ├── shop1.yaml
-│   ├── shop2.yaml
-│   └── shop3.yaml
-├── orders/                   # Настройки Django проекта
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── docker-compose.yml        # Конфигурация Docker Compose
-├── requirements.txt          # Зависимости Python
-├── pyproject.toml           # Конфигурация проекта
-└── manage.py                # Управление Django проектом
+├── backend/                  # Django app + Celery задачи
+│   ├── api/v1/               # Вся публичная API
+│   ├── tasks.py              # email, импорт, кэш, генерация миниатюр
+│   ├── redis_client.py       # прямое подключение и helper'ы кэша
+│   ├── signals.py            # инвалидация кэша и генерация thumb'ов
+│   └── utils.py              # импорт YAML → БД
+├── data/                     # Примерные YAML (shop1..3)
+├── frontend/                 # React SPA (social login + Sentry демо)
+├── orders/settings.py        # Настройки Django (JWT, CORS, throttling, Sentry)
+├── docker-compose.yml        # Postgres + pgAdmin + Redis
+└── README.md
 ```
 
-## Модели данных
-
-### User (Пользователь)
-- Расширенная модель пользователя Django (AbstractUser)
-- Типы пользователей: `client` (клиент) или `supplier` (поставщик)
-- Аутентификация по email
-- Подтверждение email через токены
-
-### Shop (Магазин)
-- Название магазина
-- Путь к файлу источника данных (YAML)
-- Статус получения заказов (включен/выключен)
-- Связь с пользователем-поставщиком
-
-### Category (Категория)
-- Название и описание категории
-- Связь с магазинами (ManyToMany)
-
-### Product (Товар)
-- Название товара
-- Связь с категорией
-
-### ProductInfo (Информация о товаре)
-- Связь с товаром и магазином
-- Цена и рекомендуемая розничная цена
-- Количество на складе
-- Параметры товара (цвет, объем памяти и т.д.)
-
-### Cart (Корзина)
-- Связь с пользователем (OneToOne)
-- Автоматическое вычисление общей суммы
-
-### CartItem (Позиция в корзине)
-- Товар и количество
-- Автоматическое вычисление суммы позиции
-
-### Order (Заказ)
-- Связь с пользователем-клиентом
-- Статусы: `new`, `processing`, `shipped`, `delivered`
-- Дата создания
-
-### OrderItem (Позиция заказа)
-- Товар и количество
-- Связь с заказом
-
-### Contact (Контакт)
-- Адрес доставки (город, улица, дом, квартира и т.д.)
-- Телефон
-- Статус подтверждения
-- Связь с пользователем
-
-## Установка и настройка
-
-### Предварительные требования
-
-- Python 3.13.3 или выше
-- PostgreSQL 16
-- Docker и Docker Compose (опционально, для базы данных)
-- pip или uv (менеджер пакетов)
-
-### Шаг 1: Клонирование репозитория
-
+## Быстрый старт (backend)
+1) Клонируйте репозиторий и создайте окружение
 ```bash
-git clone <repository-url>
-cd order-service
+python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -r requirements.txt                      # или uv pip install -r requirements.txt
 ```
 
-### Шаг 2: Создание виртуального окружения
-
+2) Поднимите инфраструктуру (Postgres + pgAdmin + Redis)
 ```bash
-python -m venv venv
-source venv/bin/activate  # Для Linux/Mac
-# или
-venv\Scripts\activate  # Для Windows
+cp .env.example .env  # если ещё нет файла
+docker-compose up -d
 ```
+Postgres: `localhost:5434`, pgAdmin: `http://localhost:5050`, Redis: `6379`.
 
-### Шаг 3: Установка зависимостей
-
+3) Примените миграции и создайте учётки
 ```bash
-pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py create_initial_shops   # создаст shop1..shop3
 ```
 
-Или с использованием `uv`:
-
+4) Запустите Celery worker (нужен Redis)
 ```bash
-uv pip install -r requirements.txt
+celery -A backend worker -l info
 ```
 
-### Шаг 4: Настройка базы данных
+5) Запустите сервер разработки
+```bash
+python manage.py runserver  # http://127.0.0.1:8000
+```
 
-#### Вариант A: Использование Docker Compose (рекомендуется)
+## Быстрый старт (frontend)
+```bash
+cd frontend
+npm install
+REACT_APP_SENTRY_DSN_FRONTEND=<dsn> npm start  # или задайте в .env
+```
+Маршруты SPA: `/login` (OAuth кнопки), `/social-login-success` (сохраняет access/refresh и редиректит), `/` (Dashboard с тестами Sentry).
 
-1. Создайте файл `.env` в корне проекта:
-
+## .env (минимальный пример)
 ```env
+SECRET_KEY=dev-secret
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
 POSTGRES_DB=orders_db
 POSTGRES_USER=orders_user
-POSTGRES_PASSWORD=your_secure_password
+POSTGRES_PASSWORD=pass
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5434
 
+CELERY_BROKER_URL=redis://127.0.0.1:6379/0
+CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/0
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=<client_id>
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<client_secret>
+SOCIAL_AUTH_GITHUB_OAUTH2_KEY=<client_id>
+SOCIAL_AUTH_GITHUB_OAUTH2_SECRET=<client_secret>
+FRONTEND_SOCIAL_LOGIN_SUCCESS_URL=http://127.0.0.1:3000/social-login-success
+
+SENTRY_DSN_BACKEND=<dsn или пусто>
 PGADMIN_DEFAULT_EMAIL=admin@example.com
 PGADMIN_DEFAULT_PASSWORD=admin_password
 ```
+Frontend берёт `REACT_APP_SENTRY_DSN_FRONTEND` из своего `.env`.
 
-2. Запустите PostgreSQL и pgAdmin через Docker Compose:
-
-```bash
-docker-compose up -d
-```
-
-База данных будет доступна на порту `5434`, pgAdmin на порту `5050`.
-
-#### Вариант B: Локальная установка PostgreSQL
-
-1. Установите PostgreSQL 16
-2. Создайте базу данных и пользователя:
-
-```sql
-CREATE DATABASE orders_db;
-CREATE USER orders_user WITH PASSWORD 'your_secure_password';
-ALTER ROLE orders_user SET client_encoding TO 'utf8';
-ALTER ROLE orders_user SET default_transaction_isolation TO 'read committed';
-ALTER ROLE orders_user SET timezone TO 'Europe/Moscow';
-GRANT ALL PRIVILEGES ON DATABASE orders_db TO orders_user;
-```
-
-3. Создайте файл `.env`:
-
-```env
-POSTGRES_DB=orders_db
-POSTGRES_USER=orders_user
-POSTGRES_PASSWORD=your_secure_password
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-```
-
-### Шаг 5: Настройка переменных окружения
-
-Убедитесь, что файл `.env` содержит все необходимые переменные (см. Шаг 4).
-
-### Шаг 6: Применение миграций
-
-```bash
-python manage.py migrate
-```
-
-### Шаг 7: Создание суперпользователя
-
-```bash
-python manage.py createsuperuser
-```
-
-### Шаг 8: Создание начальных магазинов
-
-```bash
-python manage.py create_initial_shops
-```
-
-Эта команда создаст три магазина: `shop1`, `shop2`, `shop3`.
-
-### Шаг 9: Импорт данных из YAML-файлов
-
-После создания магазинов можно импортировать данные:
-
-```bash
-# Импорт данных конкретного магазина (через API)
-curl -X POST http://127.0.0.1:8000/api/v1/import_shop/1/
-
-# Импорт данных всех магазинов
-curl -X POST http://127.0.0.1:8000/api/v1/import_all_shops/
-```
-
-### Шаг 10: Запуск сервера разработки
-
-```bash
-python manage.py runserver
-```
-
-Сервер будет доступен по адресу: `http://127.0.0.1:8000/`
-
-## Использование API
-
-### Базовый URL
-
-```
-http://127.0.0.1:8000/api/v1/
-```
+## Основные возможности API (v1)
+Базовый URL: `http://127.0.0.1:8000/api/v1/`
 
 ### Аутентификация
+- `POST /register/` — регистрация, создаётся `EmailConfirmation`, отправляется письмо.
+- `POST /login/` — выдача `access/refresh` по email+паролю.
+- `POST /token/refresh/` — обновление access.
+- `GET /confirm-email/<token>/` — активация учётки.
+- Social OAuth: `GET /auth/login/google-oauth2/` или `/auth/login/github/` (standard social_django), далее бэкенд делает редирект на `FRONTEND_SOCIAL_LOGIN_SUCCESS_URL` с JWT.
+- `GET /users/me/` — данные текущего пользователя.
+- `GET/PUT/PATCH /profile/` — обновление профиля и аватара (thumb генерируется Celery).
 
-API использует JWT (JSON Web Tokens) для аутентификации. Большинство endpoints требуют токен доступа в заголовке:
+### Каталог и кэширование
+- `GET /product-infos/` — список цен/складов с фильтрами (django-filter: категория, магазин, цена/кол-во, параметры), search и ordering. Ответ кэшируется в Redis (db=1) с TTL 10 минут; кэш сбрасывается сигналами `post_save/post_delete` ProductInfo и задачей `clear_product_list_cache_task`.
+- `GET /products/<id>/` — детальная карточка товара.
+- `PUT /products/<id>/image-upload/` — загрузка оригинала, thumb/detail создаются ImageKit в Celery.
 
-```
-Authorization: Bearer <access_token>
-```
-
-### Регистрация пользователя
-
-**POST** `/api/v1/register/`
-
-```json
-{
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "secure_password123",
-  "first_name": "John",
-  "last_name": "Doe",
-  "user_type": "client"
-}
-```
-
-**Ответ:**
-```json
-{
-  "status": "успешно",
-  "message": "Пользователь john_doe успешно зарегистрирован."
-}
-```
-
-### Вход в систему
-
-**POST** `/api/v1/login/`
-
-```json
-{
-  "email": "john@example.com",
-  "password": "secure_password123"
-}
-```
-
-**Ответ:**
-```json
-{
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "user_info": {
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com",
-    "first_name": "John",
-    "last_name": "Doe"
-  }
-}
-```
-
-### Обновление токена
-
-**POST** `/api/v1/token/refresh/`
-
-```json
-{
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
-}
-```
-
-### Подтверждение email
-
-**GET** `/api/v1/confirm-email/<uuid:token>/`
-
-Перейдите по ссылке, полученной в письме, или выполните GET-запрос с токеном.
-
-### Товары
-
-#### Получение списка товаров
-
-**GET** `/api/v1/product-infos/`
-
-**Параметры запроса:**
-- `search` - поиск по названию товара, описанию, магазину, параметрам
-- `shop` - фильтр по ID магазина
-- `category` - фильтр по ID категории
-- `ordering` - сортировка (`price`, `quantity`, `id`)
-- `page` - номер страницы (пагинация)
-
-**Пример:**
-```
-GET /api/v1/product-infos/?search=iPhone&shop=1&ordering=price
-```
-
-#### Получение детальной информации о товаре
-
-**GET** `/api/v1/products/<id>/`
-
-### Корзина
-
-#### Получение корзины
-
-**GET** `/api/v1/cart/`
-
-**Требуется аутентификация**
-
-**Ответ:**
-```json
-{
-  "id": 1,
-  "user": 1,
-  "items": [
-    {
-      "id": 1,
-      "product_info": {
-        "id": 1,
-        "product": {
-          "id": 1,
-          "name": "iPhone 15"
-        },
-        "shop": {
-          "id": 1,
-          "name": "shop1"
-        },
-        "price": "75000.00"
-      },
-      "quantity": 2,
-      "total_price": "150000.00"
-    }
-  ],
-  "total_price": "150000.00"
-}
-```
-
-#### Добавление товара в корзину
-
-**POST** `/api/v1/cart/add/`
-
-**Требуется аутентификация**
-
-```json
-{
-  "product_info_id": 1,
-  "quantity": 2
-}
-```
-
-#### Обновление количества товара
-
-**PUT** `/api/v1/cart/item/<id>/`
-
-**Требуется аутентификация**
-
-```json
-{
-  "quantity": 3
-}
-```
-
-#### Удаление товара из корзины
-
-**DELETE** `/api/v1/cart/item/<id>/`
-
-**Требуется аутентификация**
-
-#### Очистка корзины
-
-**DELETE** `/api/v1/cart/`
-
-**Требуется аутентификация**
+### Корзина и заказы
+- `GET/DELETE /cart/` — получить/очистить корзину, `POST /cart/add/`, `PUT/DELETE /cart/item/<id>/`.
+- `POST /confirm-order/` — формирует заказ из корзины и указанного контакта, валидирует остатки, уменьшает склад.
+- `GET /orders/` и `GET /orders/<id>/` — история и детали.
 
 ### Контакты
+- `GET/POST /contacts/`, `GET/PUT/PATCH/DELETE /contacts/<id>/`.
+- `POST /send-contact-confirmation/` — создаёт токен и отправляет письмо через Celery.
+- `GET /confirm-contact/<token>/` — подтверждение адреса.
 
-#### Получение списка контактов
+### Импорт YAML
+- `POST /start-import-all-shops/` — Celery-задача для всех активных магазинов.
+- `POST /start-import-shop/<shop_id>/` — импорт конкретного магазина; можно передать `yaml_file_path`.
+- `GET /import-status/<task_id>/` — статус Celery-задачи.
+Формат YAML — как в примерах `data/shop*.yaml` (categories → products → product_infos с параметрами).
 
-**GET** `/api/v1/contacts/`
+### Документация и лимиты
+- Throttling: `anon 10/min`, `user 100/min`.
+- OpenAPI: drf-spectacular настроен, схему можно включить `SERVE_INCLUDE_SCHEMA=True` при необходимости.
+- CORS: разрешены `http://localhost:3000`, `http://127.0.0.1:3000`.
 
-**Требуется аутентификация**
+## Почта
+По умолчанию отправка идёт через MailHog (`EMAIL_HOST=127.0.0.1`, `EMAIL_PORT=1025`). Для продакшена настройте SMTP в `.env` и `DEFAULT_FROM_EMAIL`. Все письма регистрации и подтверждения контактов отправляются Celery-задачами.
 
-#### Создание контакта
+## Наблюдаемость (Sentry)
+- Backend: задайте `SENTRY_DSN_BACKEND`, интеграции Django+Celery активируются автоматически.
+- Frontend: `REACT_APP_SENTRY_DSN_FRONTEND`, `reactRouterTracingIntegration` уже подключён. На Dashboard есть две кнопки для теста ошибок (JS exception и React render crash).
 
-**POST** `/api/v1/contacts/`
+## Работа с медиа
+Медиа лежат в `media/`. Оригиналы товаров — `products/originals`, миниатюры и detail генерируются асинхронно. Для аватаров сохраняются оригинал и thumbnail.
 
-**Требуется аутентификация**
-
-```json
-{
-  "phone": "+7 (999) 123-45-67",
-  "city": "Москва",
-  "street": "Тверская",
-  "house": "10",
-  "apartment": "25"
-}
-```
-
-#### Обновление контакта
-
-**PUT** `/api/v1/contacts/<id>/`
-
-**Требуется аутентификация**
-
-#### Удаление контакта
-
-**DELETE** `/api/v1/contacts/<id>/`
-
-**Требуется аутентификация**
-
-#### Отправка письма для подтверждения контакта
-
-**POST** `/api/v1/send-contact-confirmation/`
-
-**Требуется аутентификация**
-
-```json
-{
-  "contact_id": 1
-}
-```
-
-#### Подтверждение контакта
-
-**GET** `/api/v1/confirm-contact/<uuid:token>/`
-
-### Заказы
-
-#### Создание заказа
-
-**POST** `/api/v1/confirm-order/`
-
-**Требуется аутентификация**
-
-```json
-{
-  "cart_id": 1,
-  "contact_id": 1
-}
-```
-
-**Ответ:**
-```json
-{
-  "id": 1,
-  "user": 1,
-  "status": "new",
-  "created_at": "2024-01-15T10:30:00Z",
-  "items": [
-    {
-      "id": 1,
-      "product_info": {
-        "id": 1,
-        "product": {
-          "id": 1,
-          "name": "iPhone 15"
-        },
-        "shop": {
-          "id": 1,
-          "name": "shop1"
-        },
-        "price": "75000.00"
-      },
-      "quantity": 2
-    }
-  ]
-}
-```
-
-#### Получение истории заказов
-
-**GET** `/api/v1/orders/`
-
-**Требуется аутентификация**
-
-#### Получение детальной информации о заказе
-
-**GET** `/api/v1/orders/<id>/`
-
-**Требуется аутентификация**
-
-### Импорт данных
-
-#### Импорт данных конкретного магазина
-
-**POST** `/api/v1/import_shop/<shop_id>/`
-
-#### Импорт данных всех магазинов
-
-**POST** `/api/v1/import_all_shops/`
-
-## Формат YAML-файлов для импорта
-
-YAML-файлы должны находиться в директории `data/` и иметь следующую структуру:
-
-```yaml
-name: "Название магазина"
-source_file: "data/shop1.yaml"
-state: true
-categories:
-  - name: "Категория 1"
-    description: "Описание категории"
-    products:
-      - name: "Название товара"
-        product_infos:
-          - name: "Детальное описание товара"
-            price: 10000.00
-            price_rrc: 12000.00
-            quantity: 50
-            parameters:
-              - name: "Параметр 1"
-                value: "Значение 1"
-              - name: "Параметр 2"
-                value: "Значение 2"
-```
-
-## Управление проектом
-
-### Создание миграций
-
-```bash
-python manage.py makemigrations
-```
-
-### Применение миграций
-
-```bash
-python manage.py migrate
-```
-
-### Создание суперпользователя
-
-```bash
-python manage.py createsuperuser
-```
-
-### Запуск Django shell
-
-```bash
-python manage.py shell
-```
-
-### Сбор статических файлов
-
-```bash
-python manage.py collectstatic
-```
-
-### Запуск тестов
-
+## Запуск тестов
 ```bash
 python manage.py test
 ```
+При запуске тестов автоматически используется SQLite.
 
-## Настройка email
-
-По умолчанию проект настроен на работу с MailHog (локальный SMTP сервер для разработки).
-
-### Установка MailHog
-
-```bash
-# macOS
-brew install mailhog
-
-# Linux
-wget https://github.com/mailhog/MailHog/releases/download/v1.0.1/MailHog_linux_amd64
-chmod +x MailHog_linux_amd64
-./MailHog_linux_amd64
-```
-
-Запустите MailHog и он будет доступен на `http://127.0.0.1:8025` для просмотра писем.
-
-### Настройка production SMTP
-
-В `orders/settings.py` измените настройки:
-
-```python
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "your_email@gmail.com"
-EMAIL_HOST_PASSWORD = "your_app_password"
-DEFAULT_FROM_EMAIL = "your_email@gmail.com"
-```
-
-## Безопасность
-
-⚠️ **Важно для production:**
-
-1. Измените `SECRET_KEY` в `settings.py`
-2. Установите `DEBUG = False`
-3. Настройте `ALLOWED_HOSTS`
-4. Используйте HTTPS
-5. Настройте CORS правильно
-6. Используйте сильные пароли для базы данных
-7. Регулярно обновляйте зависимости
-
-## Разработка
-
-### Структура API
-
-API организован по версиям. Текущая версия: `v1`. Все endpoints находятся в `backend/api/v1/`.
-
-### Добавление новых endpoints
-
-1. Создайте view в соответствующем файле в `backend/api/v1/`
-2. Создайте сериализатор в `backend/api/*_serializers.py`
-3. Добавьте URL в `backend/api/v1/urls.py`
-
-### Логирование
-
-Логирование настроено в `settings.py`. Логи приложения `backend` выводятся в консоль с уровнем `DEBUG`.
-
-## Troubleshooting
-
-### Ошибка подключения к базе данных
-
-- Проверьте, что PostgreSQL запущен
-- Убедитесь, что переменные окружения в `.env` корректны
-- Проверьте, что порт не занят другим процессом
-
-### Ошибки миграций
-
-```bash
-# Сброс миграций (осторожно, удалит данные!)
-python manage.py migrate backend zero
-python manage.py migrate
-```
-
-### Проблемы с импортом YAML
-
-- Проверьте формат YAML-файла
-- Убедитесь, что файл существует по указанному пути
-- Проверьте кодировку файла (должна быть UTF-8)
-
-## Благодарности
+## Эксплуатация и безопасность
+- Задайте реальный `SECRET_KEY`, включите `DEBUG=False`, заполните `ALLOWED_HOSTS`.
+- Используйте HTTPS, настройте CORS под ваш домен.
+- Защитите Redis/DB паролями, обновляйте зависимости.
 
 Проект создан с использованием Django и Django REST Framework. Благодарю всех со всей силы!!
 
