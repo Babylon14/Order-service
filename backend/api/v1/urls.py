@@ -17,9 +17,9 @@ urlpatterns = [
     path("login/", auth_views.UserLoginAPIView.as_view(), name="token_obtain_pair_api_v1"), 
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh_api_v1"),
 
-    # URL для списка информации о товарах
+    # URL для просмотра списка информации о товарах
     path("product-infos/", product_views.ProductInfoListView.as_view(), name="product_info_list_api_v1"),
-    # URL для детальной информации о товаре
+    # URL для просмотра детальной информации о товаре
     path("products/<int:id>/", product_views.ProductDetailView.as_view(), name="product_detail_api_v1"),
 
     # URL для корзины

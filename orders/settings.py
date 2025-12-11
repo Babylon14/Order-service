@@ -228,7 +228,7 @@ CELERY_TIMEZONE = "Europe/Moscow"
 # --- Настройка Redis ---
 REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = os.getenv("REDIS_PORT", "6379")
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 CACHES = {
     "default": { # Кэш по умолчанию (например, для session)

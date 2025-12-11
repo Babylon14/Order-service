@@ -5,8 +5,10 @@ from django.conf import settings
 from django.apps import apps
 from imagekit import registry
 from imagekit.models import ProcessedImageField
+
 from .models import Shop
 from backend.utils import load_shop_data_from_yaml
+from backend.redis_client import clear_product_list_cache
 
 
 # --- АСИНХРОННЫЕ ЗАДАЧИ для отправки email-писем ---
@@ -160,4 +162,19 @@ def generate_thumbnails(app_label: str, model_name: str, pk: int, field_name: st
         print(f"Успешно сгенерированы миниатюры для {model_name} (ID: {pk}), поле: {field_name}")
     except Exception as e:
         print(f"Ошибка при генерации миниатюры: {e}")
+
+
+# --- CELERY ЗАДАЧИ для очистки кэша ---
+@shared_task
+def clear_product_list_cache_task():
+    """Запускает очистку кэша продуктов."""
+
+    # Вызываем функцию, которая уже работает с redis-py
+    result = clear_product_list_cache()
+    if result > 0:
+        return f"Успешно очищено {result} ключей кэша."
+    elif result == 0:
+        return f"Ключи не найдены. Кэш не требует очистки."
+    else:
+        return "Ошибка очистки кэша."
 
