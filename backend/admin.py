@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Shop, ProductInfo
+from .models import Shop, ProductInfo, Order, Contact
 
 
 @admin.register(Shop)
@@ -28,4 +28,40 @@ class ProductInfoModelAdmin(admin.ModelAdmin):
     list_per_page = 25
 
 
+@admin.register(Order)
+class OrderModelAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "status", "created_at")
+    list_filter = ("status", "created_at", "user")
 
+
+@admin.register(Contact)
+class ContactModelAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "city",
+        "street",
+        "house",
+        "structure",
+        "building",
+        "apartment",
+        "is_confirmed"
+    )
+    list_filter = ("first_name", "last_name", "email", "is_confirmed")
+    search_fields = (
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "city",
+        "street",
+        "house",
+        "structure",
+        "building",
+        "apartment",
+        "is_confirmed"
+    )
