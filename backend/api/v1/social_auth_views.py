@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.views import View
 
+
 class SocialAuthTokenRedirectView(View):
     """
     Перенаправляет на фронтенд с токенами после успешной аутентификации.

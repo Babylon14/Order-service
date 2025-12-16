@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Shop
+from .models import Shop, ProductInfo, Order, Contact, User
 
 
 @admin.register(Shop)
@@ -9,4 +9,67 @@ class ShopAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     ordering = ("-name",)
 
+
+@admin.register(ProductInfo)
+class ProductInfoModelAdmin(admin.ModelAdmin):
+    # 1. Какие поля показывать в списке (вместо id и названия)
+    list_display = (
+        "id", "name", "price", "price_rrc", "quantity", "shop",)
+    # 2. Поля, которые будут ссылками на страницу редактирования
+    list_display_links = ("id", "name")
+
+    # 3. Фильтры справа: по статусу, дате или внешнему ключу
+    list_filter = ("price", "quantity", "shop")
+
+    # 4. Поля для поиска (поиск по БД)
+    search_fields = ("name", "price", "quantity", "shop__name__startswith", "shop__id")
+
+    # 5. Количество объектов на странице, производительность
+    list_per_page = 25
+
+
+@admin.register(Order)
+class OrderModelAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "status", "created_at")
+    list_filter = ("status", "created_at", "user")
+
+
+@admin.register(Contact)
+class ContactModelAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "city",
+        "street",
+        "house",
+        "structure",
+        "building",
+        "apartment",
+        "is_confirmed"
+    )
+    list_filter = ("first_name", "last_name", "email", "is_confirmed")
+    search_fields = (
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "city",
+        "street",
+        "house",
+        "structure",
+        "building",
+        "apartment",
+        "is_confirmed"
+    )
+
+
+@admin.register(User)
+class UserModelAdmin(admin.ModelAdmin):
+    list_display = ("id", "username", "email", "is_active", "is_staff", "is_superuser", "original_avatar", "avatar_thumbnail")
+    list_filter = ("is_active", "is_staff", "is_superuser")
+    search_fields = ("username", "email")
 
