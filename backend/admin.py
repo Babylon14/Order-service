@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Shop, ProductInfo, Order, Contact
+from .models import Shop, ProductInfo, Order, Contact, User
 
 
 @admin.register(Shop)
@@ -65,3 +65,11 @@ class ContactModelAdmin(admin.ModelAdmin):
         "apartment",
         "is_confirmed"
     )
+
+
+@admin.register(User)
+class UserModelAdmin(admin.ModelAdmin):
+    list_display = ("id", "username", "email", "is_active", "is_staff", "is_superuser", "original_avatar", "avatar_thumbnail")
+    list_filter = ("is_active", "is_staff", "is_superuser")
+    search_fields = ("username", "email")
+
