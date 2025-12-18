@@ -86,7 +86,7 @@ class ProductInfoListView(generics.ListAPIView):
             print("--- INFO: Данные сохранены в Redis через redis-py ---")
 
         return response
-        
+            
 
 class ProductDetailView(generics.RetrieveAPIView):
     """
