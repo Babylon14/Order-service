@@ -30,6 +30,7 @@ djangorestframework==3.16.1
 djangorestframework-simplejwt==5.5.1
 drf-social-oauth2==3.1.0
 drf-spectacular==0.29.0
+gunicorn==23.0.0
 idna==3.11
 inflection==0.5.1
 jsonschema==4.25.1
