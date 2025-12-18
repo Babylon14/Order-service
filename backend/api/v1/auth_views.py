@@ -42,9 +42,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         """Переопределяем метод validate, чтобы использовать email и пароль для аутентификации"""
         email_provided = attrs.get("email")
         logger.info(f"Попытка входа с email: {email_provided}")
-        
-        # ВНИМАНИЕ!!! TokenObtainPairSerializer САМ ОБРАБОТАЕТ username_field = 'email'
-        # и вызовет authenticate с правильными аргументами.
 
         try:
             # Вызов родительской валидации (аутентификации)

@@ -13,14 +13,14 @@ def load_shop_data_from_yaml(shop_id: int, yaml_file_path: str) -> dict:
         yaml_file_path (str): Путь к YAML-файлу с данными.
     """
     try:
-        shop = Shop.objects.get(id=shop_id)
+        shop = Shop.objects.get(id=shop_id) # Получаем конкретный магазин
     except Shop.DoesNotExist:
         print(f"Ошибка: магазин с ID {shop_id} не существует.")
         return {"status": "error", "message": f"Магазин с ID {shop_id} не был найден."}
 
     try:
         with open(yaml_file_path, "r", encoding="utf-8") as file:
-            yaml_data = yaml.safe_load(file)
+            yaml_data = yaml.safe_load(file) # Читаем YAML-файл
     except FileNotFoundError:
         print(f"Ошибка: файл {yaml_file_path} не найден.")
         return {"status": "error", "message": f"Файл {yaml_file_path} не найден."}
@@ -33,14 +33,12 @@ def load_shop_data_from_yaml(shop_id: int, yaml_file_path: str) -> dict:
         return {"status": "error", "message": "Неверный формат YAML-файла."}
 
     try:
-        with transaction.atomic():
+        with transaction.atomic(): # Начинаем транзакцию
             """Транзакция для обеспечения целостности данных."""
             _process_categories(yaml_data.get("categories", []), shop)
     except Exception as err:
         logging.exception(f"Ошибка при загрузке данных из {yaml_file_path} для магазина {shop.name}: {err}")
-        print(f"Ошибка при загрузке данных из {yaml_file_path} для магазина {shop.name}: {err}")
         return {"status": "error", "message": f"Ошибка при загрузке данных: {err}"}
-
      # Возвращаем успешный статус
     return {
         "status": "success",
@@ -49,7 +47,7 @@ def load_shop_data_from_yaml(shop_id: int, yaml_file_path: str) -> dict:
 
 
 def _process_categories(categories_data: list, shop: Shop) -> None:
-    """Обрабатывает категории из YAML-данных и связывает их с магазином."""
+    """Обрабатывает Категории товаров из YAML-данных и связывает их с магазином."""
     for category_data in categories_data:
         cat_name = category_data.get("name")
         cat_description = category_data.get("description", "")
@@ -57,7 +55,6 @@ def _process_categories(categories_data: list, shop: Shop) -> None:
         if not cat_name:
             print("Пропущена категория без имени.")
             continue
-
         # Получаем или создаем категорию
         category, created = Category.objects.get_or_create(
             name=cat_name,
@@ -82,18 +79,15 @@ def _process_products(products_data: list, category: Category, shop: Shop) -> No
         if not prod_name:
             print("Пропущен товар без имени.")
             continue
-
         # Получаем или создаем товар
         product, created = Product.objects.get_or_create(
             name=prod_name,
             defaults={"category": category}
         )
-
         # Если продукт уже существовал, но не был в нужной категории, обновим его категорию
         if not created and product.category != category:
             product.category = category
             product.save()
-
         # Обрабатываем информацию о продукте
         _process_product_infos(product_data.get("product_infos", []), product, shop)
 
@@ -112,7 +106,6 @@ def _process_product_infos(product_infos_data: list, product: Product, shop: Sho
         if not all([info_name, price, price_rrc, quantity]):
             print(f"Пропущена информация о продукте '{info_name}' из-за отсутствующих данных.")
             continue
-
         # Получаем или создаем информацию о продукте
         product_info, created = ProductInfo.objects.get_or_create(
             product=product,
@@ -120,14 +113,12 @@ def _process_product_infos(product_infos_data: list, product: Product, shop: Sho
             name=info_name,
             defaults={"price": price, "price_rrc": price_rrc, "quantity": quantity}
         )
-
         # Если объект уже существовал, обновляем поля
         if not created:
             product_info.price = price
             product_info.price_rrc = price_rrc
             product_info.quantity = quantity
             product_info.save()
-
         # Обрабатываем параметры продукта
         _process_product_parameters(info_data.get("parameters", []), product_info)
 

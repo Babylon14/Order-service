@@ -33,7 +33,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             is_active=False, # Деактивируем пользователя до подтверждения
         )
         user.set_password(validated_data["password"]) # Хешируем пароль
-        user.save()
+        user.save() # Сохраняем пользователя
 
         # Создание токена подтверждения
         confirmation = EmailConfirmation.objects.create(user=user)

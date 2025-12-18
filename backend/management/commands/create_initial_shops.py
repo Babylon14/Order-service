@@ -11,7 +11,6 @@ class Command(BaseCommand):
             {"name": "shop2", "source_file": "data/shop2.yaml"},
             {"name": "shop3", "source_file": "data/shop3.yaml"},
         ]
-
         created_count = 0
         for shop_info in initial_shops:
             shop, created = Shop.objects.get_or_create(
