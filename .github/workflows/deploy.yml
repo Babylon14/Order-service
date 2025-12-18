@@ -83,8 +83,9 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /home/${{ secrets.SERVER_USER }}/order-service
-          docker compose -f docker-compose.prod.yml pull
-          docker compose -f docker-compose.prod.yml up -d
+          echo "${{ secrets.ENV_FILE }}" > .env         
+          docker compose -f docker-compose.prod.yml pull    
+          docker compose -f docker-compose.prod.yml up -d         
           docker image prune -f
 
 
