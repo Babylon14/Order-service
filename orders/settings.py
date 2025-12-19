@@ -134,7 +134,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+# Где Django будет искать статику внутри приложений (например, админки)
+STATIC_URL = "/static/"
+
+# КУДА collectstatic будет копировать файлы
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+# медиа-файлы (куда будут загружаться изображения пользователями)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Чтобы Django правильно строил ссылки на наш IP
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "http")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -300,9 +312,8 @@ CORS_ALLOWED_ORIGINS = [
 # Разрешаем кросс-доменные запросы
 CORS_ALLOW_CREDENTIALS = True
 
-# медиа-файлы (куда будут загружаться изображения пользователями)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Если используем social-auth, добавьте эти настройки
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
 # Отключаем автоматическую генерацию изображений ImageKit при сохранении модели
 IMAGEKIT_CACHEFILE_NAMER = "imagekit.cachefiles.namers.source_name_hashed_dot"
