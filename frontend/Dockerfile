@@ -17,7 +17,7 @@ RUN npm run build
 # 5. Финальный этап: Nginx
 FROM nginx:stable-alpine
 # Копируем конфиг, который мы создали ранее
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Копируем билд фронтенда из предыдущего этапа
 COPY --from=build /app/build /usr/share/nginx/html
 
